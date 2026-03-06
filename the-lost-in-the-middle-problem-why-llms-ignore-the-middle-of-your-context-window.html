@@ -3,50 +3,270 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="You stuffed all the right documents into the prompt. The LLM still got the answer wrong. Turns out, language models have a blind spot — and it's right in the middle. Here's the research behind it and what you can do.">
+  <meta name="description" content="You stuffed all the right documents into the prompt. The LLM still got the answer wrong. Turns out, language models have a blind spot — and it&#039;s right in the middle. Here&#039;s the research behind it and what you can do.">
   <meta name="author" content="thousandmiles-ai-admin">
-  <title>The 'Lost in the Middle' Problem — Why LLMs Ignore the Middle of Your Context Window</title>
+  <meta property="og:title" content="The &#039;Lost in the Middle&#039; Problem — Why LLMs Ignore the Middle of Your Context Window">
+  <meta property="og:description" content="You stuffed all the right documents into the prompt. The LLM still got the answer wrong. Turns out, language models have a blind spot — and it&#039;s right in the middle. Here&#039;s the research behind it and what you can do.">
+  <meta property="og:type" content="article">
+  <title>The &#039;Lost in the Middle&#039; Problem — Why LLMs Ignore the Middle of Your Context Window</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f8f9fa;
+      --bg-code: #f6f8fa;
+      --text-primary: #1a202c;
+      --text-secondary: #4a5568;
+      --text-tertiary: #718096;
+      --border-color: #e2e8f0;
+      --accent-color: #3b82f6;
+      --accent-hover: #2563eb;
+      --tag-bg: #e0e7ff;
+      --tag-text: #3730a3;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+      --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-primary: #1a202c;
+        --bg-secondary: #2d3748;
+        --bg-code: #2d3748;
+        --text-primary: #f7fafc;
+        --text-secondary: #e2e8f0;
+        --text-tertiary: #a0aec0;
+        --border-color: #4a5568;
+        --accent-color: #60a5fa;
+        --accent-hover: #3b82f6;
+        --tag-bg: #3730a3;
+        --tag-text: #e0e7ff;
+      }
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      line-height: 1.6;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.7;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .container {
       max-width: 800px;
       margin: 0 auto;
-      padding: 20px;
-      color: #333;
+      padding: 2rem 1.5rem;
     }
-    h1 { color: #2c3e50; margin-bottom: 10px; }
-    .meta { color: #7f8c8d; margin-bottom: 20px; font-size: 14px; }
-    .tags { margin: 20px 0; }
+
+    .header {
+      margin-bottom: 3rem;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      color: var(--accent-color);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 2rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: var(--accent-hover);
+    }
+
+    .back-link::before {
+      content: "←";
+      margin-right: 0.5rem;
+    }
+
+    article h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      line-height: 1.2;
+      color: var(--text-primary);
+      margin-bottom: 1rem;
+    }
+
+    @media (max-width: 640px) {
+      article h1 {
+        font-size: 2rem;
+      }
+    }
+
+    .meta {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--text-tertiary);
+      font-size: 0.875rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .meta-divider {
+      color: var(--border-color);
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+
     .tag {
       display: inline-block;
-      background: #ecf0f1;
-      padding: 5px 10px;
-      margin-right: 5px;
-      border-radius: 3px;
-      font-size: 12px;
+      background: var(--tag-bg);
+      color: var(--tag-text);
+      padding: 0.375rem 0.875rem;
+      border-radius: 0.375rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      transition: transform 0.2s;
     }
-    img { max-width: 100%; height: auto; }
-    code {
-      background: #f4f4f4;
-      padding: 2px 6px;
-      border-radius: 3px;
-      font-family: 'Courier New', monospace;
+
+    .tag:hover {
+      transform: translateY(-1px);
+    }
+
+    .content {
+      font-size: 1.0625rem;
+      color: var(--text-secondary);
+    }
+
+    .content h2 {
+      font-size: 1.875rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 2.5rem 0 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    .content h3 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 2rem 0 1rem;
+    }
+
+    .content h4 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 1.5rem 0 0.75rem;
+    }
+
+    .content p {
+      margin: 1rem 0;
+      line-height: 1.8;
+    }
+
+    .content strong {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .content a {
+      color: var(--accent-color);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.2s;
+    }
+
+    .content a:hover {
+      border-bottom-color: var(--accent-color);
+    }
+
+    .content code {
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      font-size: 0.875em;
+      background: var(--bg-code);
+      padding: 0.2em 0.4em;
+      border-radius: 0.25rem;
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    .content pre {
+      background: var(--bg-code);
+      padding: 1.25rem;
+      border-radius: 0.5rem;
+      overflow-x: auto;
+      margin: 1.5rem 0;
+      border: 1px solid var(--border-color);
+    }
+
+    .content pre code {
+      background: none;
+      padding: 0;
+      border: none;
+      font-size: 0.875rem;
+      line-height: 1.6;
+    }
+
+    .content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 0.5rem;
+      margin: 2rem 0;
+      box-shadow: var(--shadow-md);
+    }
+
+    .content ul, .content ol {
+      margin: 1rem 0 1rem 1.5rem;
+    }
+
+    .content li {
+      margin: 0.5rem 0;
+    }
+
+    .content blockquote {
+      border-left: 4px solid var(--accent-color);
+      padding-left: 1rem;
+      margin: 1.5rem 0;
+      color: var(--text-tertiary);
+      font-style: italic;
+    }
+
+    .footer {
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border-color);
+      text-align: center;
+      color: var(--text-tertiary);
+      font-size: 0.875rem;
     }
   </style>
 </head>
 <body>
-  <article>
-    <h1>The 'Lost in the Middle' Problem — Why LLMs Ignore the Middle of Your Context Window</h1>
-    <div class="meta">
-      <span>By thousandmiles-ai-admin</span> •
-      <span>2026-01-31</span>
+  <div class="container">
+    <a href="index.html" class="back-link">All Posts</a>
+    <div class="header">
+      <article>
+        <h1>The &#039;Lost in the Middle&#039; Problem — Why LLMs Ignore the Middle of Your Context Window</h1>
+        <div class="meta">
+          <span>thousandmiles-ai-admin</span>
+          <span class="meta-divider">•</span>
+          <time datetime="2026-01-31">January 30, 2026</time>
+        </div>
+        <div class="tags">
+          <span class="tag">Learning</span><span class="tag">AI</span>
+        </div>
+      </article>
     </div>
-    <div class="tags">
-        <span class="tag">Learning</span><span class="tag">AI</span>
-      </div>
     <div class="content">
-      <p><h1>The "Lost in the Middle" Problem — Why LLMs Ignore the Middle of Your Context Window</h1></p><p><strong>Your LLM has a 128K context window. It can read a novel in one go. But it still misses the one paragraph that matters — because it was in the middle.</strong></p><p>---</p><p><h2>The Perfect Retrieval That Still Failed</h2></p><p>Here's a scenario that frustrates every RAG developer at some point. You've built a solid pipeline. Your retriever returns five relevant chunks, ranked by relevance. The correct answer is sitting right there — chunk #3, smack in the middle of the context. You've done everything right.</p><p>The LLM reads all five chunks, generates a confident response, and... gets it wrong. It pulled information from chunk #1 and chunk #5, blended them together, and produced something that sounds plausible but misses the actual answer. The evidence was right in front of it. It just didn't look at it carefully enough.</p><p>You're not imagining this. It has a name: the "lost in the middle" problem. And it's backed by one of the most cited papers in LLM research from 2023, with follow-up work from MIT in 2025 that finally explained <em>why</em> it happens at an architectural level.</p><p><h2>Why Should You Care?</h2></p><p>If you're building anything that puts multiple pieces of information into an LLM's context — RAG systems, multi-document summarization, long-form analysis — this bias directly affects your output quality. And the bigger your context window, the worse it can get.</p><p>This is also the kind of research-backed knowledge that separates strong candidates in AI interviews. Anyone can explain what attention is. Explaining <em>why attention is systematically biased by position</em> and what to do about it — that's a different level.</p><p><h2>Let Me Back Up — What the Research Found</h2></p><p>In 2023, researchers from Stanford, UC Berkeley, and Samaya AI published a paper titled "Lost in the Middle" that tested how well LLMs use information at different positions in their context window. They ran a simple experiment: give the model a set of documents where only one contains the answer, and vary where that document appears — beginning, middle, or end.</p><p>The results showed a clear U-shaped performance curve. When the relevant document was at the very beginning of the context, accuracy was high. When it was at the very end, accuracy was also high. But when it was in the middle? Accuracy dropped — sometimes dramatically.</p><p>This wasn't a quirk of one model. They tested multiple LLMs across different architectures and sizes, and the pattern held consistently. Language models pay the most attention to the beginning and end of their context, and systematically under-attend to the middle.</p><p>![Mermaid Diagram](https://raw.githubusercontent.com/thousandmiles-ai/blogs/main/blog-images/the-lost-in-the-middle-problem-why-llms-ignore-the-middle-of-your-context-window/mermaid-080f356d072821389b39f752ae1d91ca.svg)</p><p><em>The U-shaped attention curve: LLMs attend strongly to the beginning and end of context, with a blind spot in the middle.</em></p><p><h2>Okay, But Why? — The Architecture Behind the Bias</h2></p><p>For two years after the original paper, the "why" was unclear. People noticed the pattern but couldn't pinpoint the cause. Was it training data? Model size? Prompt format?</p><p>In 2025, MIT researchers cracked it open. They identified two architectural causes:</p><p><h3>Cause 1: Causal Attention Masking</h3></p><p>Transformer models use something called causal masking in their attention mechanism. This means each token can only attend to tokens that came before it — not after. It's how the model generates text left-to-right.</p><p>Here's the subtle problem: tokens at the beginning of the context get attended to by every subsequent token. Token #1 is visible to token #2, #3, #4... all the way to the end. Token #500, sitting in the middle, is only visible to tokens #501 onward. This means earlier tokens accumulate more "attention weight" across the model, simply because they have more opportunities to be attended to.</p><p>It's not that the model decides the beginning is more important. The architecture makes it structurally easier to attend to earlier tokens. The bias is baked into the attention mask itself.</p><p><h3>Cause 2: Positional Encoding Decay</h3></p><p>Modern LLMs use positional encodings — typically Rotary Position Embedding (RoPE) — to give the model a sense of token order. RoPE introduces a distance-based decay: tokens that are far apart have their attention scores naturally reduced.</p><p>For tokens at the end of the context (where the model generates its response), nearby tokens (also at the end) have strong attention signals, and very early tokens also maintain attention through a mechanism called "attention sinks." But middle tokens? They're too far from the beginning to benefit from the primacy effect and too far from the end to benefit from recency. They're in a dead zone.</p><p><h3>The Human Parallel</h3></p><p>Here's what makes this even more interesting: this mirrors a well-known phenomenon in human psychology called the <strong>serial position effect</strong>. When people are asked to remember a list of items, they recall the first items (primacy effect) and the last items (recency effect) much better than items in the middle.</p><p>LLMs weren't designed to mimic human memory. But through the architecture of attention mechanisms and training on human-generated text, they've developed a strikingly similar bias. Whether this is a bug or a feature of learning from human data is still debated.</p><p>![Mermaid Diagram](https://raw.githubusercontent.com/thousandmiles-ai/blogs/main/blog-images/the-lost-in-the-middle-problem-why-llms-ignore-the-middle-of-your-context-window/mermaid-86df6c821ade9430f88b2c8705d47ecf.svg)</p><p><em>Three contributing factors: structural attention bias, positional encoding decay, and training data patterns.</em></p><p><h2>What Can You Actually Do About It?</h2></p><p>Knowing the problem is half the battle. Here are practical mitigations that work in production systems:</p><p><h3>1. Strategic Document Ordering</h3></p><p>The simplest fix: don't put your most important information in the middle. In RAG systems, place your highest-confidence retrieved documents at the beginning and end of the context. Put lower-ranked documents in the middle. You're not fighting the bias — you're working with it.</p><p>Specifically: if you retrieve 5 chunks ranked by relevance, arrange them as [rank 1, rank 4, rank 5, rank 3, rank 2] — best at the start, second-best at the end, least important in the middle.</p><p><h3>2. Reduce the Number of Retrieved Documents</h3></p><p>More context doesn't always mean better answers. If you're retrieving 20 chunks when 5 would suffice, you're creating more middle ground for information to get lost in. Be surgical: use a reranker to select the top 3–5 most relevant chunks and discard the rest. Less noise means less middle to ignore.</p><p><h3>3. Prompt Compression</h3></p><p>Instead of dumping raw chunks into the context, compress them first. Extract only the sentences or facts that are relevant to the query and assemble a tighter, shorter context. When there's less total content, there's less of a middle for information to hide in.</p><p><h3>4. Explicit Instruction</h3></p><p>Sometimes the blunt approach works: tell the model to pay attention to all parts of the context. Prompts like "Carefully consider ALL of the provided documents, especially documents that appear in the middle" can measurably reduce the bias. It doesn't eliminate it, but it helps.</p><p><h3>5. Multi-Pass Extraction</h3></p><p>For critical applications, run multiple passes. First pass: ask the model to extract relevant facts from each document independently. Second pass: ask it to synthesize those facts into an answer. By processing documents individually first, you avoid the position bias entirely — each document gets the model's full attention.</p><p><h2>Mistakes That Bite</h2></p><p><strong>"Bigger context windows solve this."</strong> They don't. The 2023 paper showed the U-curve exists even in models with context windows of 4K, 16K, and 32K tokens. Research from 2025 confirmed it persists in models with 128K+ windows. Bigger windows mean more middle, which means more room for information to get lost.</p><p><strong>"This only matters for RAG."</strong> It affects any task that puts multiple pieces of information into the context — summarization, question answering over multiple documents, multi-turn conversations where important information was mentioned 20 messages ago. If you're using more than a few hundred tokens of context, this bias applies.</p><p><strong>"Newer models have fixed this."</strong> Some improvements have been made. Techniques like Multi-scale Positional Encoding (Ms-PoE) and attention calibration can reduce the bias without retraining. But as of 2026, no production model has fully eliminated position bias. It's structural to how transformers work.</p><p><h2>Now Go Break Something</h2></p><p>Want to see this bias for yourself? Here's a simple experiment:</p><p>- Create a list of 10 facts. Embed the answer to a specific question as fact #5 (the middle).</p>
+      <h1>The "Lost in the Middle" Problem — Why LLMs Ignore the Middle of Your Context Window</h1></p><p><strong>Your LLM has a 128K context window. It can read a novel in one go. But it still misses the one paragraph that matters — because it was in the middle.</strong></p><p>---</p><p><h2>The Perfect Retrieval That Still Failed</h2></p><p>Here's a scenario that frustrates every RAG developer at some point. You've built a solid pipeline. Your retriever returns five relevant chunks, ranked by relevance. The correct answer is sitting right there — chunk #3, smack in the middle of the context. You've done everything right.</p><p>The LLM reads all five chunks, generates a confident response, and... gets it wrong. It pulled information from chunk #1 and chunk #5, blended them together, and produced something that sounds plausible but misses the actual answer. The evidence was right in front of it. It just didn't look at it carefully enough.</p><p>You're not imagining this. It has a name: the "lost in the middle" problem. And it's backed by one of the most cited papers in LLM research from 2023, with follow-up work from MIT in 2025 that finally explained <em>why</em> it happens at an architectural level.</p><p><h2>Why Should You Care?</h2></p><p>If you're building anything that puts multiple pieces of information into an LLM's context — RAG systems, multi-document summarization, long-form analysis — this bias directly affects your output quality. And the bigger your context window, the worse it can get.</p><p>This is also the kind of research-backed knowledge that separates strong candidates in AI interviews. Anyone can explain what attention is. Explaining <em>why attention is systematically biased by position</em> and what to do about it — that's a different level.</p><p><h2>Let Me Back Up — What the Research Found</h2></p><p>In 2023, researchers from Stanford, UC Berkeley, and Samaya AI published a paper titled "Lost in the Middle" that tested how well LLMs use information at different positions in their context window. They ran a simple experiment: give the model a set of documents where only one contains the answer, and vary where that document appears — beginning, middle, or end.</p><p>The results showed a clear U-shaped performance curve. When the relevant document was at the very beginning of the context, accuracy was high. When it was at the very end, accuracy was also high. But when it was in the middle? Accuracy dropped — sometimes dramatically.</p><p>This wasn't a quirk of one model. They tested multiple LLMs across different architectures and sizes, and the pattern held consistently. Language models pay the most attention to the beginning and end of their context, and systematically under-attend to the middle.</p><p>!<a href="https://raw.githubusercontent.com/thousandmiles-ai/blogs/main/blog-images/the-lost-in-the-middle-problem-why-llms-ignore-the-middle-of-your-context-window/mermaid-080f356d072821389b39f752ae1d91ca.svg" target="_blank" rel="noopener">Mermaid Diagram</a></p><p><em>The U-shaped attention curve: LLMs attend strongly to the beginning and end of context, with a blind spot in the middle.</em></p><p><h2>Okay, But Why? — The Architecture Behind the Bias</h2></p><p>For two years after the original paper, the "why" was unclear. People noticed the pattern but couldn't pinpoint the cause. Was it training data? Model size? Prompt format?</p><p>In 2025, MIT researchers cracked it open. They identified two architectural causes:</p><p><h3>Cause 1: Causal Attention Masking</h3></p><p>Transformer models use something called causal masking in their attention mechanism. This means each token can only attend to tokens that came before it — not after. It's how the model generates text left-to-right.</p><p>Here's the subtle problem: tokens at the beginning of the context get attended to by every subsequent token. Token #1 is visible to token #2, #3, #4... all the way to the end. Token #500, sitting in the middle, is only visible to tokens #501 onward. This means earlier tokens accumulate more "attention weight" across the model, simply because they have more opportunities to be attended to.</p><p>It's not that the model decides the beginning is more important. The architecture makes it structurally easier to attend to earlier tokens. The bias is baked into the attention mask itself.</p><p><h3>Cause 2: Positional Encoding Decay</h3></p><p>Modern LLMs use positional encodings — typically Rotary Position Embedding (RoPE) — to give the model a sense of token order. RoPE introduces a distance-based decay: tokens that are far apart have their attention scores naturally reduced.</p><p>For tokens at the end of the context (where the model generates its response), nearby tokens (also at the end) have strong attention signals, and very early tokens also maintain attention through a mechanism called "attention sinks." But middle tokens? They're too far from the beginning to benefit from the primacy effect and too far from the end to benefit from recency. They're in a dead zone.</p><p><h3>The Human Parallel</h3></p><p>Here's what makes this even more interesting: this mirrors a well-known phenomenon in human psychology called the <strong>serial position effect</strong>. When people are asked to remember a list of items, they recall the first items (primacy effect) and the last items (recency effect) much better than items in the middle.</p><p>LLMs weren't designed to mimic human memory. But through the architecture of attention mechanisms and training on human-generated text, they've developed a strikingly similar bias. Whether this is a bug or a feature of learning from human data is still debated.</p><p>!<a href="https://raw.githubusercontent.com/thousandmiles-ai/blogs/main/blog-images/the-lost-in-the-middle-problem-why-llms-ignore-the-middle-of-your-context-window/mermaid-86df6c821ade9430f88b2c8705d47ecf.svg" target="_blank" rel="noopener">Mermaid Diagram</a></p><p><em>Three contributing factors: structural attention bias, positional encoding decay, and training data patterns.</em></p><p><h2>What Can You Actually Do About It?</h2></p><p>Knowing the problem is half the battle. Here are practical mitigations that work in production systems:</p><p><h3>1. Strategic Document Ordering</h3></p><p>The simplest fix: don't put your most important information in the middle. In RAG systems, place your highest-confidence retrieved documents at the beginning and end of the context. Put lower-ranked documents in the middle. You're not fighting the bias — you're working with it.</p><p>Specifically: if you retrieve 5 chunks ranked by relevance, arrange them as [rank 1, rank 4, rank 5, rank 3, rank 2] — best at the start, second-best at the end, least important in the middle.</p><p><h3>2. Reduce the Number of Retrieved Documents</h3></p><p>More context doesn't always mean better answers. If you're retrieving 20 chunks when 5 would suffice, you're creating more middle ground for information to get lost in. Be surgical: use a reranker to select the top 3–5 most relevant chunks and discard the rest. Less noise means less middle to ignore.</p><p><h3>3. Prompt Compression</h3></p><p>Instead of dumping raw chunks into the context, compress them first. Extract only the sentences or facts that are relevant to the query and assemble a tighter, shorter context. When there's less total content, there's less of a middle for information to hide in.</p><p><h3>4. Explicit Instruction</h3></p><p>Sometimes the blunt approach works: tell the model to pay attention to all parts of the context. Prompts like "Carefully consider ALL of the provided documents, especially documents that appear in the middle" can measurably reduce the bias. It doesn't eliminate it, but it helps.</p><p><h3>5. Multi-Pass Extraction</h3></p><p>For critical applications, run multiple passes. First pass: ask the model to extract relevant facts from each document independently. Second pass: ask it to synthesize those facts into an answer. By processing documents individually first, you avoid the position bias entirely — each document gets the model's full attention.</p><p><h2>Mistakes That Bite</h2></p><p><strong>"Bigger context windows solve this."</strong> They don't. The 2023 paper showed the U-curve exists even in models with context windows of 4K, 16K, and 32K tokens. Research from 2025 confirmed it persists in models with 128K+ windows. Bigger windows mean more middle, which means more room for information to get lost.</p><p><strong>"This only matters for RAG."</strong> It affects any task that puts multiple pieces of information into the context — summarization, question answering over multiple documents, multi-turn conversations where important information was mentioned 20 messages ago. If you're using more than a few hundred tokens of context, this bias applies.</p><p><strong>"Newer models have fixed this."</strong> Some improvements have been made. Techniques like Multi-scale Positional Encoding (Ms-PoE) and attention calibration can reduce the bias without retraining. But as of 2026, no production model has fully eliminated position bias. It's structural to how transformers work.</p><p><h2>Now Go Break Something</h2></p><p>Want to see this bias for yourself? Here's a simple experiment:</p><p>- Create a list of 10 facts. Embed the answer to a specific question as fact #5 (the middle).
 <p>- Ask the LLM the question with all 10 facts in context. Note the answer.</p>
 <p>- Move the answer to fact #1. Ask again. Move it to fact #10. Ask again.</p>
 <p>- Compare the accuracy across positions.</p><p>For deeper exploration:</p><p>- Read the original paper: search for "Lost in the Middle: How Language Models Use Long Contexts" by Liu et al.</p>
@@ -54,6 +274,9 @@
 <p>- Search for "Found in the Middle calibration" — this paper proposes a calibration method that reduces position bias without retraining</p>
 <p>- Explore Ms-PoE (Multi-scale Positional Encoding) — a plug-and-play approach that improves middle-context utilization</p><p>---</p><p><strong>Your RAG system retrieved five perfect chunks. The answer was in chunk #3. The LLM read chunk #1 carefully, skimmed chunks #2 through #4, and paid close attention to chunk #5. It's not carelessness — it's architecture. Causal masking and positional encodings create a structural blind spot in the middle. Once you know it's there, you can design around it: reorder your documents, slim down your context, and stop trusting that more tokens always means better answers.</strong></p>
     </div>
-  </article>
+    <footer class="footer">
+      <p>&copy; 2026 thousandmiles-ai-admin. All rights reserved.</p>
+    </footer>
+  </div>
 </body>
 </html>

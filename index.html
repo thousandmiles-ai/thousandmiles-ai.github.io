@@ -3,91 +3,282 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Blog posts and articles">
   <title>Blog</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      line-height: 1.6;
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 20px;
-      color: #333;
-      background: #f8f9fa;
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f8f9fa;
+      --bg-card: #ffffff;
+      --text-primary: #1a202c;
+      --text-secondary: #4a5568;
+      --text-tertiary: #718096;
+      --border-color: #e2e8f0;
+      --accent-color: #3b82f6;
+      --accent-hover: #2563eb;
+      --tag-bg: #e0e7ff;
+      --tag-text: #3730a3;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+      --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+      --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
     }
-    h1 {
-      color: #2c3e50;
-      margin-bottom: 30px;
-      border-bottom: 3px solid #3498db;
-      padding-bottom: 10px;
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-primary: #0f172a;
+        --bg-secondary: #1e293b;
+        --bg-card: #1e293b;
+        --text-primary: #f1f5f9;
+        --text-secondary: #cbd5e1;
+        --text-tertiary: #94a3b8;
+        --border-color: #334155;
+        --accent-color: #60a5fa;
+        --accent-hover: #3b82f6;
+        --tag-bg: #3730a3;
+        --tag-text: #e0e7ff;
+      }
     }
-    .post-list {
-      list-style: none;
+
+    * {
+      margin: 0;
       padding: 0;
+      box-sizing: border-box;
     }
-    .post-item {
-      background: white;
-      margin-bottom: 20px;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      transition: transform 0.2s, box-shadow 0.2s;
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
-    .post-item:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
     }
+
+    .header {
+      text-align: center;
+      margin-bottom: 4rem;
+      padding: 3rem 0;
+    }
+
+    .header h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.025em;
+    }
+
+    .header-subtitle {
+      font-size: 1.25rem;
+      color: var(--text-tertiary);
+      font-weight: 400;
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 2.5rem;
+      }
+      .header-subtitle {
+        font-size: 1rem;
+      }
+    }
+
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-top: 1.5rem;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent-color);
+    }
+
+    .stat-label {
+      font-size: 0.875rem;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 0.25rem;
+    }
+
+    .post-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 2rem;
+      list-style: none;
+      margin-bottom: 4rem;
+    }
+
+    @media (max-width: 768px) {
+      .post-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .post-card {
+      background: var(--bg-card);
+      border-radius: 1rem;
+      padding: 1.75rem;
+      border: 1px solid var(--border-color);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .post-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--accent-color);
+    }
+
+    .post-date {
+      font-size: 0.8125rem;
+      color: var(--text-tertiary);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.75rem;
+    }
+
     .post-title {
-      font-size: 24px;
-      margin: 0 0 10px 0;
-      color: #2c3e50;
+      font-size: 1.5rem;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 0.75rem;
     }
+
     .post-title a {
-      color: inherit;
+      color: var(--text-primary);
       text-decoration: none;
+      transition: color 0.2s;
     }
+
     .post-title a:hover {
-      color: #3498db;
+      color: var(--accent-color);
     }
-    .post-meta {
-      color: #7f8c8d;
-      font-size: 14px;
-      margin-bottom: 10px;
-    }
+
     .post-description {
-      color: #555;
-      margin: 10px 0;
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+      line-height: 1.6;
+      flex-grow: 1;
     }
+
     .post-tags {
-      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: auto;
     }
+
     .tag {
-      display: inline-block;
-      background: #ecf0f1;
-      padding: 4px 10px;
-      margin-right: 5px;
-      border-radius: 3px;
-      font-size: 12px;
-      color: #555;
+      display: inline-flex;
+      align-items: center;
+      background: var(--tag-bg);
+      color: var(--tag-text);
+      padding: 0.25rem 0.75rem;
+      border-radius: 0.375rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      transition: all 0.2s;
     }
-    .post-count {
-      color: #7f8c8d;
-      margin-bottom: 20px;
+
+    .tag:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .read-more {
+      display: inline-flex;
+      align-items: center;
+      color: var(--accent-color);
+      font-weight: 600;
+      font-size: 0.875rem;
+      margin-top: 1rem;
+      text-decoration: none;
+      transition: gap 0.2s;
+      gap: 0.25rem;
+    }
+
+    .read-more:hover {
+      gap: 0.5rem;
+      color: var(--accent-hover);
+    }
+
+    .read-more::after {
+      content: "→";
+    }
+
+    .footer {
+      text-align: center;
+      padding: 2rem 0;
+      color: var(--text-tertiary);
+      font-size: 0.875rem;
+      border-top: 1px solid var(--border-color);
+      margin-top: 4rem;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-tertiary);
+    }
+
+    .empty-state-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
     }
   </style>
 </head>
 <body>
-  <h1>Blog</h1>
-  <div class="post-count">1 post</div>
-  <ul class="post-list" data-post-list='[{&quot;title&quot;:&quot;AI-Generated Code Fails in Production (and Why Your Manager Won't Notice)&quot;,&quot;description&quot;:&quot;Your AI pair programmer is an overconfident junior developer. We dig into why AI code passes the vibe check but fails at 3am. The gap between 'it works' and 'it's reliable.'&quot;,&quot;date&quot;:&quot;2026-02-03&quot;,&quot;url&quot;:&quot;ai-generated-code-fails-in-production-and-why-your-manager-wont-notice.html&quot;,&quot;tags&quot;:[&quot;AI&quot;,&quot;Software Engineering&quot;,&quot;Quality Assurance&quot;]}]'>
-    
-    <li class="post-item">
-      <h2 class="post-title"><a href="ai-generated-code-fails-in-production-and-why-your-manager-wont-notice.html">AI-Generated Code Fails in Production (and Why Your Manager Won't Notice)</a></h2>
-      <div class="post-meta">February 2, 2026</div>
-      <div class="post-description">Your AI pair programmer is an overconfident junior developer. We dig into why AI code passes the vibe check but fails at 3am. The gap between 'it works' and 'it's reliable.'</div>
-      <div class="post-tags">
-        <span class="tag">AI</span><span class="tag">Software Engineering</span><span class="tag">Quality Assurance</span>
+  <div class="container">
+    <header class="header">
+      <h1>Blog</h1>
+      <p class="header-subtitle">Thoughts, stories and ideas</p>
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-value">1</div>
+          <div class="stat-label">Post</div>
+        </div>
       </div>
-    </li>
-  </ul>
+    </header>
+
+    <ul class="post-grid" data-post-list="W3sidGl0bGUiOiJBSS1HZW5lcmF0ZWQgQ29kZSBGYWlscyBpbiBQcm9kdWN0aW9uIChhbmQgV2h5IFlvdXIgTWFuYWdlciBXb24ndCBOb3RpY2UpIiwiZGVzY3JpcHRpb24iOiJZb3VyIEFJIHBhaXIgcHJvZ3JhbW1lciBpcyBhbiBvdmVyY29uZmlkZW50IGp1bmlvciBkZXZlbG9wZXIuIFdlIGRpZyBpbnRvIHdoeSBBSSBjb2RlIHBhc3NlcyB0aGUgdmliZSBjaGVjayBidXQgZmFpbHMgYXQgM2FtLiBUaGUgZ2FwIGJldHdlZW4gJ2l0IHdvcmtzJyBhbmQgJ2l0J3MgcmVsaWFibGUuJyIsImRhdGUiOiIyMDI2LTAyLTAzIiwidXJsIjoiYWktZ2VuZXJhdGVkLWNvZGUtZmFpbHMtaW4tcHJvZHVjdGlvbi1hbmQtd2h5LXlvdXItbWFuYWdlci13b250LW5vdGljZS5odG1sIiwidGFncyI6WyJBSSIsIlNvZnR3YXJlIEVuZ2luZWVyaW5nIiwiUXVhbGl0eSBBc3N1cmFuY2UiXX1d">
+      
+      <li class="post-card">
+        <time class="post-date" datetime="2026-02-03">February 2, 2026</time>
+        <h2 class="post-title">
+          <a href="ai-generated-code-fails-in-production-and-why-your-manager-wont-notice.html">AI-Generated Code Fails in Production (and Why Your Manager Won&#039;t Notice)</a>
+        </h2>
+        <p class="post-description">Your AI pair programmer is an overconfident junior developer. We dig into why AI code passes the vibe check but fails at 3am. The gap between &#039;it works&#039; and &#039;it&#039;s reliable.&#039;</p>
+        <div class="post-tags">
+          <span class="tag">AI</span><span class="tag">Software Engineering</span><span class="tag">Quality Assurance</span>
+        </div>
+        <a href="ai-generated-code-fails-in-production-and-why-your-manager-wont-notice.html" class="read-more">Read article</a>
+      </li>
+    </ul>
+
+    <footer class="footer">
+      <p>&copy; 2026 All rights reserved.</p>
+    </footer>
+  </div>
 </body>
 </html>

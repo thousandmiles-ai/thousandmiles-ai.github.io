@@ -7,23 +7,27 @@
   <title>Blog</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg-primary: #ffffff;
       --bg-secondary: #f8f9fa;
       --bg-card: #ffffff;
+      --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       --text-primary: #1a202c;
       --text-secondary: #4a5568;
       --text-tertiary: #718096;
       --border-color: #e2e8f0;
-      --accent-color: #3b82f6;
-      --accent-hover: #2563eb;
+      --accent-color: #667eea;
+      --accent-hover: #5568d3;
       --tag-bg: #e0e7ff;
-      --tag-text: #3730a3;
+      --tag-text: #5a67d8;
+      --tag-bg-active: #667eea;
+      --tag-text-active: #ffffff;
       --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
       --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
       --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+      --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
     }
 
     @media (prefers-color-scheme: dark) {
@@ -31,14 +35,17 @@
         --bg-primary: #0f172a;
         --bg-secondary: #1e293b;
         --bg-card: #1e293b;
+        --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         --text-primary: #f1f5f9;
         --text-secondary: #cbd5e1;
         --text-tertiary: #94a3b8;
         --border-color: #334155;
-        --accent-color: #60a5fa;
-        --accent-hover: #3b82f6;
+        --accent-color: #818cf8;
+        --accent-hover: #6366f1;
         --tag-bg: #3730a3;
-        --tag-text: #e0e7ff;
+        --tag-text: #c7d2fe;
+        --tag-bg-active: #6366f1;
+        --tag-text-active: #ffffff;
       }
     }
 
@@ -63,31 +70,61 @@
       padding: 2rem 1.5rem;
     }
 
-    .header {
+    .hero {
+      background: var(--bg-gradient);
+      border-radius: 1.5rem;
+      padding: 4rem 2rem;
+      margin-bottom: 3rem;
       text-align: center;
-      margin-bottom: 4rem;
-      padding: 3rem 0;
+      color: white;
+      position: relative;
+      overflow: hidden;
     }
 
-    .header h1 {
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      animation: pulse 15s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1) rotate(0deg); }
+      50% { transform: scale(1.1) rotate(5deg); }
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero h1 {
       font-size: 3.5rem;
-      font-weight: 800;
-      color: var(--text-primary);
-      margin-bottom: 0.75rem;
+      font-weight: 900;
+      margin-bottom: 1rem;
       letter-spacing: -0.025em;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.2);
     }
 
-    .header-subtitle {
+    .hero-subtitle {
       font-size: 1.25rem;
-      color: var(--text-tertiary);
+      opacity: 0.95;
       font-weight: 400;
+      margin-bottom: 2rem;
     }
 
     @media (max-width: 768px) {
-      .header h1 {
+      .hero {
+        padding: 3rem 1.5rem;
+      }
+      .hero h1 {
         font-size: 2.5rem;
       }
-      .header-subtitle {
+      .hero-subtitle {
         font-size: 1rem;
       }
     }
@@ -95,8 +132,11 @@
     .stats {
       display: flex;
       justify-content: center;
-      gap: 2rem;
-      margin-top: 1.5rem;
+      gap: 3rem;
+      padding: 1rem;
+      background: rgba(255,255,255,0.15);
+      border-radius: 1rem;
+      backdrop-filter: blur(10px);
     }
 
     .stat {
@@ -104,17 +144,74 @@
     }
 
     .stat-value {
-      font-size: 2rem;
-      font-weight: 700;
-      color: var(--accent-color);
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: white;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
 
     .stat-label {
       font-size: 0.875rem;
-      color: var(--text-tertiary);
+      color: rgba(255,255,255,0.9);
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.1em;
       margin-top: 0.25rem;
+      font-weight: 600;
+    }
+
+    .filter-section {
+      margin-bottom: 3rem;
+    }
+
+    .filter-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-tertiary);
+      margin-bottom: 1rem;
+    }
+
+    .filter-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .filter-tag {
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--tag-bg);
+      color: var(--tag-text);
+      border: 2px solid transparent;
+    }
+
+    .filter-tag:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .filter-tag.active {
+      background: var(--tag-bg-active);
+      color: var(--tag-text-active);
+      border-color: var(--accent-hover);
+      box-shadow: var(--shadow-md);
+    }
+
+    .filter-tag.all {
+      background: var(--bg-card);
+      color: var(--text-primary);
+      border: 2px solid var(--border-color);
+    }
+
+    .filter-tag.all.active {
+      background: var(--accent-color);
+      color: white;
+      border-color: var(--accent-color);
     }
 
     .post-grid {
@@ -134,18 +231,40 @@
     .post-card {
       background: var(--bg-card);
       border-radius: 1rem;
-      padding: 1.75rem;
-      border: 1px solid var(--border-color);
+      padding: 2rem;
+      border: 2px solid var(--border-color);
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       display: flex;
       flex-direction: column;
       height: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .post-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: var(--bg-gradient);
+      transform: scaleX(0);
+      transition: transform 0.3s;
     }
 
     .post-card:hover {
-      transform: translateY(-4px);
-      box-shadow: var(--shadow-lg);
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-xl);
       border-color: var(--accent-color);
+    }
+
+    .post-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .post-card.hidden {
+      display: none;
     }
 
     .post-date {
@@ -250,20 +369,77 @@
 </head>
 <body>
   <div class="container">
-    <header class="header">
-      <h1>Blog</h1>
-      <p class="header-subtitle">Thoughts, stories and ideas</p>
-      <div class="stats">
-        <div class="stat">
-          <div class="stat-value">21</div>
-          <div class="stat-label">Posts</div>
+    <div class="hero">
+      <div class="hero-content">
+        <h1>Blog</h1>
+        <p class="hero-subtitle">Thoughts, stories and ideas</p>
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-value">21</div>
+            <div class="stat-label">Articles</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value">14</div>
+            <div class="stat-label">Topics</div>
+          </div>
         </div>
       </div>
-    </header>
+    </div>
+
+    <div class="filter-section">
+      <div class="filter-title">Filter by Topic</div>
+      <div class="filter-tags">
+        <button class="filter-tag all active" data-tag="all" onclick="filterPosts('all')">
+          All Posts
+        </button>
+        <button class="filter-tag" data-tag="AI" onclick="filterPosts('AI')">
+          AI
+        </button>
+        <button class="filter-tag" data-tag="Career" onclick="filterPosts('Career')">
+          Career
+        </button>
+        <button class="filter-tag" data-tag="DevOps" onclick="filterPosts('DevOps')">
+          DevOps
+        </button>
+        <button class="filter-tag" data-tag="Hacking" onclick="filterPosts('Hacking')">
+          Hacking
+        </button>
+        <button class="filter-tag" data-tag="LLMs" onclick="filterPosts('LLMs')">
+          LLMs
+        </button>
+        <button class="filter-tag" data-tag="Learning" onclick="filterPosts('Learning')">
+          Learning
+        </button>
+        <button class="filter-tag" data-tag="Local Models" onclick="filterPosts('Local Models')">
+          Local Models
+        </button>
+        <button class="filter-tag" data-tag="Open Source" onclick="filterPosts('Open Source')">
+          Open Source
+        </button>
+        <button class="filter-tag" data-tag="Performance" onclick="filterPosts('Performance')">
+          Performance
+        </button>
+        <button class="filter-tag" data-tag="Productivity" onclick="filterPosts('Productivity')">
+          Productivity
+        </button>
+        <button class="filter-tag" data-tag="Quality Assurance" onclick="filterPosts('Quality Assurance')">
+          Quality Assurance
+        </button>
+        <button class="filter-tag" data-tag="Security" onclick="filterPosts('Security')">
+          Security
+        </button>
+        <button class="filter-tag" data-tag="Software Engineering" onclick="filterPosts('Software Engineering')">
+          Software Engineering
+        </button>
+        <button class="filter-tag" data-tag="Technology" onclick="filterPosts('Technology')">
+          Technology
+        </button>
+      </div>
+    </div>
 
     <ul class="post-grid" data-post-list="W3sidGl0bGUiOiJMb1JBIGFuZCBRTG9SQSBFeHBsYWluZWQg4oCUIEZpbmUtVHVuZSBMTE1zIFdpdGhvdXQgU2VsbGluZyBZb3VyIEtpZG5leSBmb3IgR1BVcyIsImRlc2NyaXB0aW9uIjoiRnVsbCBmaW5lLXR1bmluZyBhIDdCIG1vZGVsIG5lZWRzIDR4IEExMDAgR1BVcy4gWW91IGhhdmUgYSBmcmVlIENvbGFiIG5vdGVib29rIHdpdGggMTVHQiBvZiBSQU0uIEdhbWUgb3Zlcj8gTm90IGV2ZW4gY2xvc2UuIExvUkEgYW5kIFFMb1JBIGxldCB5b3UgZmluZS10dW5lIGJpbGxpb24tcGFyYW1ldGVyIG1vZGVscyBvbiBoYXJkd2FyZSB5b3UgYWxyZWFkeSBoYXZlLiBIZXJlJ3MgaG93IHRoZXkgYWN0dWFsbHkgd29yay4iLCJkYXRlIjoiMjAyNi0wMi0xNyIsInVybCI6ImxvcmEtYW5kLXFsb3JhLWV4cGxhaW5lZC1maW5lLXR1bmUtbGxtcy13aXRob3V0LXNlbGxpbmcteW91ci1raWRuZXktZm9yLWdwdXMuaHRtbCIsInRhZ3MiOlsiTGVhcm5pbmciLCJBSSJdfSx7InRpdGxlIjoiSG93IHRvIEV2YWx1YXRlIExMTSBPdXRwdXRzIOKAlCBCZXlvbmQgJ0xvb2tzIEdvb2QgdG8gTWUnIiwiZGVzY3JpcHRpb24iOiJZb3VyIFJBRyBwaXBlbGluZSByZXR1cm5zIGFuIGFuc3dlci4gSXQgc291bmRzIGNvbmZpZGVudC4gQnV0IGlzIGl0IGFjdHVhbGx5IGNvcnJlY3Q/IFR1cm5zIG91dCAndmliZXMtYmFzZWQgZXZhbHVhdGlvbicgZG9lc24ndCBzY2FsZS4gTGVhcm4gdGhlIG1ldHJpY3MgYW5kIGZyYW1ld29ya3MgdGhhdCBhY3R1YWxseSB0ZWxsIHlvdSBpZiB5b3VyIExMTSBpcyBoYWxsdWNpbmF0aW5nLCBtaXNzaW5nIGNvbnRleHQsIG9yIG5haWxpbmcgaXQuIiwiZGF0ZSI6IjIwMjYtMDItMTYiLCJ1cmwiOiJob3ctdG8tZXZhbHVhdGUtbGxtLW91dHB1dHMtYmV5b25kLWxvb2tzLWdvb2QtdG8tbWUuaHRtbCIsInRhZ3MiOlsiTGVhcm5pbmciLCJBSSJdfSx7InRpdGxlIjoiVGhlIExMTSBJbnRlcnZpZXcgQ2hlYXQgU2hlZXQg4oCUIDEwIFF1ZXN0aW9ucyBUaGF0IEFjdHVhbGx5IENvbWUgVXAiLCJkZXNjcmlwdGlvbiI6IllvdSd2ZSB1c2VkIENoYXRHUFQsIGJ1aWx0IGEgUkFHIHBpcGVsaW5lLCBtYXliZSBldmVuIGZpbmUtdHVuZWQgYSBtb2RlbC4gQnV0IGNhbiB5b3UgZXhwbGFpbiBob3cgYXR0ZW50aW9uIGFjdHVhbGx5IHdvcmtzIHdoZW4gdGhlIGludGVydmlld2VyIGFza3M/IEhlcmUgYXJlIDEwIExMTSBxdWVzdGlvbnMgdGhhdCBrZWVwIHNob3dpbmcgdXAgaW4gaW50ZXJ2aWV3cyDigJQgd2l0aCBhbnN3ZXJzIHRoYXQgYWN0dWFsbHkgbWFrZSBzZW5zZS4iLCJkYXRlIjoiMjAyNi0wMi0xNCIsInVybCI6InRoZS1sbG0taW50ZXJ2aWV3LWNoZWF0LXNoZWV0LTEwLXF1ZXN0aW9ucy10aGF0LWFjdHVhbGx5LWNvbWUtdXAuaHRtbCIsInRhZ3MiOlsiTGVhcm5pbmciLCJBSSJdfSx7InRpdGxlIjoiU2FuZGJveGluZyBMTE0tR2VuZXJhdGVkIENvZGU6IFJ1bm5pbmcgVW50cnVzdGVkIEFJIENvZGUgU2FmZWx5IiwiZGVzY3JpcHRpb24iOiJEb2NrZXIsIFdlYkFzc2VtYmx5LCBGaXJlY3JhY2tlciwgYW5kIEUyQi4gSG93IHRvIGV4ZWN1dGUgY29kZSB5b3VyIExMTSBnZW5lcmF0ZWQgd2l0aG91dCBidXJuaW5nIGRvd24geW91ciBpbmZyYXN0cnVjdHVyZS4iLCJkYXRlIjoiMjAyNi0wMi0xMyIsInVybCI6InNhbmRib3hpbmctbGxtLWdlbmVyYXRlZC1jb2RlLXJ1bm5pbmctdW50cnVzdGVkLWFpLWNvZGUtc2FmZWx5Lmh0bWwiLCJ0YWdzIjpbIlNlY3VyaXR5IiwiQUkiLCJTb2Z0d2FyZSBFbmdpbmVlcmluZyIsIkRldk9wcyIsIkxMTXMiXX0seyJ0aXRsZSI6IlByb21wdCBJbmplY3Rpb24gQXR0YWNrcyBFeHBsYWluZWQ6IEhvdyBZb3VyIExMTSBHZXRzIFRyaWNrZWQiLCJkZXNjcmlwdGlvbiI6IlJlYWwgZXhhbXBsZXMgb2YgaG93IGF0dGFja2VycyBoaWphY2sgTExNcyB0aHJvdWdoIHByb21wdCBpbmplY3Rpb24uIERpcmVjdCBhdHRhY2tzLCBpbmRpcmVjdCBpbmplY3Rpb24sIHN5c3RlbSBwcm9tcHQgbGVha3MsIGFuZCBkZWZlbnNlIHN0cmF0ZWdpZXMuIiwiZGF0ZSI6IjIwMjYtMDItMTIiLCJ1cmwiOiJwcm9tcHQtaW5qZWN0aW9uLWF0dGFja3MtZXhwbGFpbmVkLWhvdy15b3VyLWxsbS1nZXRzLXRyaWNrZWQuaHRtbCIsInRhZ3MiOlsiU2VjdXJpdHkiLCJBSSIsIkxMTXMiLCJTb2Z0d2FyZSBFbmdpbmVlcmluZyIsIkhhY2tpbmciXX0seyJ0aXRsZSI6IlNtYWxsIExhbmd1YWdlIE1vZGVscyBBcmUgRWF0aW5nIHRoZSBXb3JsZCAoQW5kIFlvdSBTaG91bGQgQ2FyZSkiLCJkZXNjcmlwdGlvbiI6IldoeSBUaW55TGxhbWEsIFBoaSwgYW5kIE1pc3RyYWwgN0IgYmVhdCBodWdlIG1vZGVscyBmb3IgOTUlIG9mIHJlYWwtd29ybGQgdGFza3MuIFRoZSBlZmZpY2llbmN5IHJldm9sdXRpb24gaXMgaGVyZS4iLCJkYXRlIjoiMjAyNi0wMi0xMSIsInVybCI6InNtYWxsLWxhbmd1YWdlLW1vZGVscy1hcmUtZWF0aW5nLXRoZS13b3JsZC1hbmQteW91LXNob3VsZC1jYXJlLmh0bWwiLCJ0YWdzIjpbIkxlYXJuaW5nIiwiQUkiLCJTb2Z0d2FyZSBFbmdpbmVlcmluZyIsIkxMTXMiLCJQZXJmb3JtYW5jZSJdfSx7InRpdGxlIjoiUnVubmluZyBMTE1zIG9uIFlvdXIgTGFwdG9wIFdpdGhvdXQgYSAkMTBLIEdQVSIsImRlc2NyaXB0aW9uIjoiUHJhY3RpY2FsIGd1aWRlIHRvIHJ1bm5pbmcgcHJvZHVjdGlvbi1yZWFkeSBMTE1zIGxvY2FsbHkgdXNpbmcgT2xsYW1hLCBsbGFtYS5jcHAsIGFuZCBxdWFudGl6YXRpb24uIE5vIEdQVSBjbHVzdGVyIHJlcXVpcmVkLiIsImRhdGUiOiIyMDI2LTAyLTA5IiwidXJsIjoicnVubmluZy1sbG1zLW9uLXlvdXItbGFwdG9wLXdpdGhvdXQtYS0xMGstZ3B1Lmh0bWwiLCJ0YWdzIjpbIkxlYXJuaW5nIiwiQUkiLCJTb2Z0d2FyZSBFbmdpbmVlcmluZyIsIkxMTXMiLCJMb2NhbCBNb2RlbHMiXX0seyJ0aXRsZSI6IkhvdyBEZWVwU2VlayBSMSBTaG9ja2VkIHRoZSBXb3JsZCAoQW5kIFdoeSBJdCBNYXR0ZXJzIHRvIFlvdSkiLCJkZXNjcmlwdGlvbiI6IlRoZSB1bmRlcmRvZyBzdG9yeSB0aGF0IGRpc3J1cHRlZCBBSS4gNjcxQiBwYXJhbWV0ZXJzLCAkNk0gYnVkZ2V0LCBNSVQgbGljZW5zZS4gSG93IGEgQ2hpbmVzZSBzdGFydHVwIGJlYXQgdGhlIGdpYW50cy4iLCJkYXRlIjoiMjAyNi0wMi0wOCIsInVybCI6Imhvdy1kZWVwc2Vlay1yMS1zaG9ja2VkLXRoZS13b3JsZC1hbmQtd2h5LWl0LW1hdHRlcnMtdG8teW91Lmh0bWwiLCJ0YWdzIjpbIkFJIiwiT3BlbiBTb3VyY2UiLCJUZWNobm9sb2d5Il19LHsidGl0bGUiOiJPdmVyLVJlbGlhbmNlIG9uIExMTXMgZm9yIENvZGluZyBJcyB0aGUgTmV3IER1bm5pbmctS3J1Z2VyIiwiZGVzY3JpcHRpb24iOiJXaGVuIEFJIGJlY29tZXMgYSBza2lsbCBzdWJzdGl0dXRlIGluc3RlYWQgb2YgYSBza2lsbCBhbXBsaWZpZXIuIFdoYXQgdG8ga2VlcCBsZWFybmluZyBtYW51YWxseS4gVGhlIGNvc3Qgb2YgY29udmVuaWVuY2UuIiwiZGF0ZSI6IjIwMjYtMDItMDYiLCJ1cmwiOiJvdmVyLXJlbGlhbmNlLW9uLWxsbXMtZm9yLWNvZGluZy1pcy10aGUtbmV3LWR1bm5pbmcta3J1Z2VyLmh0bWwiLCJ0YWdzIjpbIkxlYXJuaW5nIiwiQ2FyZWVyIiwiU29mdHdhcmUgRW5naW5lZXJpbmciXX0seyJ0aXRsZSI6IkNvbnRleHQgRW5naW5lZXJpbmcgSXMgdGhlIE5ldyBQcm9tcHQgRW5naW5lZXJpbmciLCJkZXNjcmlwdGlvbiI6IkhvdyBDTEFVREUubWQgZmlsZXMgYW5kIHN0cnVjdHVyZWQgY29udGV4dCBhcmUgdHJhbnNmb3JtaW5nIEFJIGNvZGluZy4gT25lIGZpbGUgdG8gcnVsZSB0aGVtIGFsbC4iLCJkYXRlIjoiMjAyNi0wMi0wNSIsInVybCI6ImNvbnRleHQtZW5naW5lZXJpbmctaXMtdGhlLW5ldy1wcm9tcHQtZW5naW5lZXJpbmcuaHRtbCIsInRhZ3MiOlsiQUkiLCJQcm9kdWN0aXZpdHkiLCJTb2Z0d2FyZSBFbmdpbmVlcmluZyJdfSx7InRpdGxlIjoiV2h5IFlvdXIgUkFHIEFwcCBHaXZlcyBXcm9uZyBBbnN3ZXJzIOKAlCBBbmQgSG93IHRvIEFjdHVhbGx5IEZpeCBJdCIsImRlc2NyaXB0aW9uIjoiWW91IGJ1aWx0IGEgUkFHIHBpcGVsaW5lLCBjb25uZWN0ZWQgYSB2ZWN0b3IgREIsIGFuZCBpdCBzdGlsbCBoYWxsdWNpbmF0ZXMuIFdoYXQgZ2l2ZXM/IEEgZGVlcCBkaXZlIGludG8gdGhlIGZhaWx1cmUgbW9kZXMgaGlkaW5nIGluIHlvdXIgcmV0cmlldmFsLCBjaHVua2luZywgYW5kIGdlbmVyYXRpb24g4oCUIGFuZCBob3cgdG8gZGVidWcgZWFjaCBvbmUuIiwiZGF0ZSI6IjIwMjYtMDItMDUiLCJ1cmwiOiJ3aHkteW91ci1yYWctYXBwLWdpdmVzLXdyb25nLWFuc3dlcnMtYW5kLWhvdy10by1hY3R1YWxseS1maXgtaXQuaHRtbCIsInRhZ3MiOlsiTGVhcm5pbmciLCJBSSIsIlNvZnR3YXJlIEVuZ2luZWVyaW5nIl19LHsidGl0bGUiOiJBSS1HZW5lcmF0ZWQgQ29kZSBGYWlscyBpbiBQcm9kdWN0aW9uIChhbmQgV2h5IFlvdXIgTWFuYWdlciBXb24ndCBOb3RpY2UpIiwiZGVzY3JpcHRpb24iOiJZb3VyIEFJIHBhaXIgcHJvZ3JhbW1lciBpcyBhbiBvdmVyY29uZmlkZW50IGp1bmlvciBkZXZlbG9wZXIuIFdlIGRpZyBpbnRvIHdoeSBBSSBjb2RlIHBhc3NlcyB0aGUgdmliZSBjaGVjayBidXQgZmFpbHMgYXQgM2FtLiBUaGUgZ2FwIGJldHdlZW4gJ2l0IHdvcmtzJyBhbmQgJ2l0J3MgcmVsaWFibGUuJyIsImRhdGUiOiIyMDI2LTAyLTAzIiwidXJsIjoiYWktZ2VuZXJhdGVkLWNvZGUtZmFpbHMtaW4tcHJvZHVjdGlvbi1hbmQtd2h5LXlvdXItbWFuYWdlci13b250LW5vdGljZS5odG1sIiwidGFncyI6WyJBSSIsIlNvZnR3YXJlIEVuZ2luZWVyaW5nIiwiUXVhbGl0eSBBc3N1cmFuY2UiXX0seyJ0aXRsZSI6IldoYXQgQXJlIFJlYXNvbmluZyBNb2RlbHMgYW5kIFdoeSBEbyBUaGV5IFRoaW5rIEJlZm9yZSBBbnN3ZXJpbmc/IiwiZGVzY3JpcHRpb24iOiJvMSwgbzMsIERlZXBTZWVrIFIxIOKAlCBhIG5ldyBicmVlZCBvZiBMTE1zIHRoYXQgbGl0ZXJhbGx5IHBhdXNlIHRvIHRoaW5rLiBCdXQgd2hhdCBkb2VzICd0aGlua2luZycgbWVhbiBmb3IgYSBtb2RlbD8gSW5zaWRlIHRoaW5raW5nIHRva2VucywgY2hhaW4tb2YtdGhvdWdodCB0cmFpbmluZywgYW5kIHdoeSB0aGlzIGNoYW5nZXMgZXZlcnl0aGluZyBhYm91dCBob3cgTExNcyBzb2x2ZSBwcm9ibGVtcy4iLCJkYXRlIjoiMjAyNi0wMi0wMiIsInVybCI6IndoYXQtYXJlLXJlYXNvbmluZy1tb2RlbHMtYW5kLXdoeS1kby10aGV5LXRoaW5rLWJlZm9yZS1hbnN3ZXJpbmcuaHRtbCIsInRhZ3MiOlsiTGVhcm5pbmciLCJBSSJdfSx7InRpdGxlIjoiVGhlICdMb3N0IGluIHRoZSBNaWRkbGUnIFByb2JsZW0g4oCUIFdoeSBMTE1zIElnbm9yZSB0aGUgTWlkZGxlIG9mIFlvdXIgQ29udGV4dCBXaW5kb3ciLCJkZXNjcmlwdGlvbiI6IllvdSBzdHVmZmVkIGFsbCB0aGUgcmlnaHQgZG9jdW1lbnRzIGludG8gdGhlIHByb21wdC4gVGhlIExMTSBzdGlsbCBnb3QgdGhlIGFuc3dlciB3cm9uZy4gVHVybnMgb3V0LCBsYW5ndWFnZSBtb2RlbHMgaGF2ZSBhIGJsaW5kIHNwb3Qg4oCUIGFuZCBpdCdzIHJpZ2h0IGluIHRoZSBtaWRkbGUuIEhlcmUncyB0aGUgcmVzZWFyY2ggYmVoaW5kIGl0IGFuZCB3aGF0IHlvdSBjYW4gZG8uIiwiZGF0ZSI6IjIwMjYtMDEtMzEiLCJ1cmwiOiJ0aGUtbG9zdC1pbi10aGUtbWlkZGxlLXByb2JsZW0td2h5LWxsbXMtaWdub3JlLXRoZS1taWRkbGUtb2YteW91ci1jb250ZXh0LXdpbmRvdy5odG1sIiwidGFncyI6WyJMZWFybmluZyIsIkFJIl19LHsidGl0bGUiOiJIb3cgTExNcyBBY3R1YWxseSBHZW5lcmF0ZSBUZXh0IOKAlCBUZW1wZXJhdHVyZSwgVG9wLUssIFRvcC1QLCBhbmQgdGhlIERpY2UgUm9sbHMgWW91IE5ldmVyIFNlZSIsImRlc2NyaXB0aW9uIjoiWW91IHNldCB0ZW1wZXJhdHVyZSB0byAwLjcgYmVjYXVzZSBhIHR1dG9yaWFsIHRvbGQgeW91IHRvLiBCdXQgZG8geW91IGtub3cgd2hhdCB0aGF0IGFjdHVhbGx5IGRvZXM/IFVuZGVyIHRoZSBob29kIG9mIGV2ZXJ5IExMTSByZXNwb25zZSBpcyBhIHByb2JhYmlsaXR5IGdhbWUg4oCUIGhlcmUncyBob3cgdGhlIGRpY2UgYXJlIGxvYWRlZC4iLCJkYXRlIjoiMjAyNi0wMS0yOSIsInVybCI6Imhvdy1sbG1zLWFjdHVhbGx5LWdlbmVyYXRlLXRleHQtdGVtcGVyYXR1cmUtdG9wLWstdG9wLXAtYW5kLXRoZS1kaWNlLXJvbGxzLXlvdS1uZXZlci1zZWUuaHRtbCIsInRhZ3MiOlsiTGVhcm5pbmciLCJBSSIsIlNvZnR3YXJlIEVuZ2luZWVyaW5nIl19LHsidGl0bGUiOiJQcm9tcHQgRW5naW5lZXJpbmcgdnMgUkFHIHZzIEZpbmUtVHVuaW5nIOKAlCBJdCdzIE5vdCBhIExhZGRlciwgSXQncyBhIERlY2lzaW9uIFRyZWUiLCJkZXNjcmlwdGlvbiI6IkV2ZXJ5b25lIHNheXM6IHN0YXJ0IHdpdGggcHJvbXB0aW5nLCB0aGVuIHRyeSBSQUcsIHRoZW4gZmluZS10dW5lLiBUaGF0IGFkdmljZSBpcyB3cm9uZy4gSGVyZSdzIGhvdyB0byBhY3R1YWxseSBjaG9vc2UgdGhlIHJpZ2h0IExMTSBvcHRpbWl6YXRpb24gc3RyYXRlZ3kg4oCUIGJhc2VkIG9uIHlvdXIgY29uc3RyYWludHMsIG5vdCBhIGZpeGVkIHNlcXVlbmNlLiIsImRhdGUiOiIyMDI2LTAxLTI3IiwidXJsIjoicHJvbXB0LWVuZ2luZWVyaW5nLXZzLXJhZy12cy1maW5lLXR1bmluZy1pdHMtbm90LWEtbGFkZGVyLWl0cy1hLWRlY2lzaW9uLXRyZWUuaHRtbCIsInRhZ3MiOlsiTGVhcm5pbmciLCJBSSIsIlNvZnR3YXJlIEVuZ2luZWVyaW5nIl19LHsidGl0bGUiOiJDaHVua2luZyBTdHJhdGVnaWVzIFRoYXQgQWN0dWFsbHkgV29yayDigJQgV2h5IFlvdXIgUkFHIEFwcCBSZXRyaWV2ZXMgR2FyYmFnZSIsImRlc2NyaXB0aW9uIjoiRml4ZWQtc2l6ZSwgcmVjdXJzaXZlLCBzZW1hbnRpYyDigJQgZXZlcnlvbmUgaGFzIGFuIG9waW5pb24gb24gdGhlICdiZXN0JyBjaHVua2luZyBzdHJhdGVneS4gVGhlIDIwMjYgYmVuY2htYXJrcyBhcmUgaW4sIGFuZCB0aGUgcmVzdWx0cyB3aWxsIHN1cnByaXNlIHlvdS4gSGVyZSdzIHdoYXQgYWN0dWFsbHkgd29ya3MgYW5kIHdoeS4iLCJkYXRlIjoiMjAyNi0wMS0yNSIsInVybCI6ImNodW5raW5nLXN0cmF0ZWdpZXMtdGhhdC1hY3R1YWxseS13b3JrLXdoeS15b3VyLXJhZy1hcHAtcmV0cmlldmVzLWdhcmJhZ2UuaHRtbCIsInRhZ3MiOlsiTGVhcm5pbmciLCJBSSIsIlNvZnR3YXJlIEVuZ2luZWVyaW5nIl19LHsidGl0bGUiOiJZb3VyIFJBRyBQaXBlbGluZSBJcyBSZXRyaWV2aW5nIEdhcmJhZ2Ug4oCUIEhlcmUncyBIb3cgdG8gRml4IEl0IHdpdGggSHlicmlkIFNlYXJjaCBhbmQgUmVyYW5raW5nIiwiZGVzY3JpcHRpb24iOiJZb3Uga25vdyBSQUcgY2FuIGZhaWwuIEJ1dCBkbyB5b3Uga25vdyBob3cgdG8gYWN0dWFsbHkgZml4IGl0PyBCZXlvbmQgdGhlIGJhc2ljcyDigJQgaHlicmlkIHNlYXJjaCwgY3Jvc3MtZW5jb2RlciByZXJhbmtpbmcsIHF1ZXJ5IGRlY29tcG9zaXRpb24sIGFuZCBjb250ZXh0dWFsIHJldHJpZXZhbCBleHBsYWluZWQgd2l0aCByZWFsIGV4YW1wbGVzLiIsImRhdGUiOiIyMDI2LTAxLTI0IiwidXJsIjoieW91ci1yYWctcGlwZWxpbmUtaXMtcmV0cmlldmluZy1nYXJiYWdlLWhlcmVzLWhvdy10by1maXgtaXQtd2l0aC1oeWJyaWQtc2VhcmNoLWFuZC1yZXJhbmtpbmcuaHRtbCIsInRhZ3MiOlsiTGVhcm5pbmciLCJBSSIsIlNvZnR3YXJlIEVuZ2luZWVyaW5nIl19LHsidGl0bGUiOiJCdWlsZCBZb3VyIEZpcnN0IE1DUCBTZXJ2ZXIgaW4gUHl0aG9uIOKAlCBBIFdlZWtlbmQgUHJvamVjdCBUaGF0IEFjdHVhbGx5IEltcHJlc3NlcyIsImRlc2NyaXB0aW9uIjoiWW91J3ZlIGhlYXJkIE1DUCBpcyB0aGUgJ1VTQi1DIGZvciBBSS4nIEJ1dCB3aGF0IGRvZXMgaXQgdGFrZSB0byBhY3R1YWxseSBidWlsZCBvbmU/IEEgaGFuZHMtb24gd2Fsa3Rocm91Z2ggb2YgY3JlYXRpbmcgYW4gTUNQIHNlcnZlciBmcm9tIHNjcmF0Y2ggdXNpbmcgUHl0aG9uIGFuZCBGYXN0TUNQIOKAlCB3aXRoIHRvb2xzIHlvdXIgTExNIGNhbiBjYWxsLiIsImRhdGUiOiIyMDI2LTAxLTIyIiwidXJsIjoiYnVpbGQteW91ci1maXJzdC1tY3Atc2VydmVyLWluLXB5dGhvbi1hLXdlZWtlbmQtcHJvamVjdC10aGF0LWFjdHVhbGx5LWltcHJlc3Nlcy5odG1sIiwidGFncyI6WyJMZWFybmluZyIsIkFJIiwiU29mdHdhcmUgRW5naW5lZXJpbmciXX0seyJ0aXRsZSI6IkhvdyBBSSBBZ2VudHMgQWN0dWFsbHkgRXhlY3V0ZSBNdWx0aS1TdGVwIFRhc2tzIOKAlCBUaGUgT3JjaGVzdHJhdGlvbiBOb2JvZHkgVGFsa3MgQWJvdXQiLCJkZXNjcmlwdGlvbiI6IllvdSBhc2tlZCB0aGUgQUkgdG8gJ2Jvb2sgYSBmbGlnaHQgYW5kIHVwZGF0ZSB0aGUgc3ByZWFkc2hlZXQuJyBJdCBkaWQgYm90aC4gQnV0IGhvdz8gQSBkZWVwIGRpdmUgaW50byB0aGUgcmVhc29uaW5nIGxvb3AsIHRvb2wgY2FsbGluZywgYW5kIG9yY2hlc3RyYXRpb24gcGF0dGVybnMgdGhhdCBtYWtlIEFJIGFnZW50cyBhY3R1YWxseSB3b3JrLiIsImRhdGUiOiIyMDI2LTAxLTIwIiwidXJsIjoiaG93LWFpLWFnZW50cy1hY3R1YWxseS1leGVjdXRlLW11bHRpLXN0ZXAtdGFza3MtdGhlLW9yY2hlc3RyYXRpb24tbm9ib2R5LXRhbGtzLWFib3V0Lmh0bWwiLCJ0YWdzIjpbIkxlYXJuaW5nIiwiQUkiLCJTb2Z0d2FyZSBFbmdpbmVlcmluZyJdfSx7InRpdGxlIjoiV2hhdCBJcyBNb2RlbCBDb250ZXh0IFByb3RvY29sIChNQ1ApIOKAlCBBbmQgV2h5IEl0J3MgQmVpbmcgQ2FsbGVkIFVTQi1DIGZvciBBSSIsImRlc2NyaXB0aW9uIjoiWW91ciBBSSBhZ2VudCBjYW4gd3JpdGUgY29kZSwgYnV0IGl0IGNhbid0IHJlYWQgeW91ciBkYXRhYmFzZSBvciBzZW5kIGEgU2xhY2sgbWVzc2FnZSB3aXRob3V0IGR1Y3QtdGFwZSBpbnRlZ3JhdGlvbnMuIE1DUCBpcyB0aGUgb3BlbiBzdGFuZGFyZCB0aGF0IGZpeGVzIHRoaXMg4oCUIGhlcmUncyBob3cgdGhlIHByb3RvY29sIHdvcmtzLCB3aHkgaXQgbWF0dGVycywgYW5kIHdoYXQgaXQgbWVhbnMgZm9yIGRldmVsb3BlcnMuIiwiZGF0ZSI6IjIwMjYtMDEtMTgiLCJ1cmwiOiJ3aGF0LWlzLW1vZGVsLWNvbnRleHQtcHJvdG9jb2wtbWNwLWFuZC13aHktaXRzLWJlaW5nLWNhbGxlZC11c2ItYy1mb3ItYWkuaHRtbCIsInRhZ3MiOlsiTGVhcm5pbmciLCJBSSIsIlNvZnR3YXJlIEVuZ2luZWVyaW5nIl19XQ==">
       
-      <li class="post-card">
+      <li class="post-card" data-tags="Learning,AI">
         <time class="post-date" datetime="2026-02-17">February 16, 2026</time>
         <h2 class="post-title">
           <a href="lora-and-qlora-explained-fine-tune-llms-without-selling-your-kidney-for-gpus.html">LoRA and QLoRA Explained — Fine-Tune LLMs Without Selling Your Kidney for GPUs</a>
@@ -275,7 +451,7 @@
         <a href="lora-and-qlora-explained-fine-tune-llms-without-selling-your-kidney-for-gpus.html" class="read-more">Read article</a>
       </li>
       
-      <li class="post-card">
+      <li class="post-card" data-tags="Learning,AI">
         <time class="post-date" datetime="2026-02-16">February 15, 2026</time>
         <h2 class="post-title">
           <a href="how-to-evaluate-llm-outputs-beyond-looks-good-to-me.html">How to Evaluate LLM Outputs — Beyond &#039;Looks Good to Me&#039;</a>
@@ -287,7 +463,7 @@
         <a href="how-to-evaluate-llm-outputs-beyond-looks-good-to-me.html" class="read-more">Read article</a>
       </li>
       
-      <li class="post-card">
+      <li class="post-card" data-tags="Learning,AI">
         <time class="post-date" datetime="2026-02-14">February 13, 2026</time>
         <h2 class="post-title">
           <a href="the-llm-interview-cheat-sheet-10-questions-that-actually-come-up.html">The LLM Interview Cheat Sheet — 10 Questions That Actually Come Up</a>
@@ -299,7 +475,7 @@
         <a href="the-llm-interview-cheat-sheet-10-questions-that-actually-come-up.html" class="read-more">Read article</a>
       </li>
       
-      <li class="post-card">
+      <li class="post-card" data-tags="Security,AI,Software Engineering,DevOps,LLMs">
         <time class="post-date" datetime="2026-02-13">February 12, 2026</time>
         <h2 class="post-title">
           <a href="sandboxing-llm-generated-code-running-untrusted-ai-code-safely.html">Sandboxing LLM-Generated Code: Running Untrusted AI Code Safely</a>
@@ -311,7 +487,7 @@
         <a href="sandboxing-llm-generated-code-running-untrusted-ai-code-safely.html" class="read-more">Read article</a>
       </li>
       
-      <li class="post-card">
+      <li class="post-card" data-tags="Security,AI,LLMs,Software Engineering,Hacking">
         <time class="post-date" datetime="2026-02-12">February 11, 2026</time>
         <h2 class="post-title">
           <a href="prompt-injection-attacks-explained-how-your-llm-gets-tricked.html">Prompt Injection Attacks Explained: How Your LLM Gets Tricked</a>
@@ -323,7 +499,7 @@
         <a href="prompt-injection-attacks-explained-how-your-llm-gets-tricked.html" class="read-more">Read article</a>
       </li>
       
-      <li class="post-card">
+      <li class="post-card" data-tags="Learning,AI,Software Engineering,LLMs,Performance">
         <time class="post-date" datetime="2026-02-11">February 10, 2026</time>
         <h2 class="post-title">
           <a href="small-language-models-are-eating-the-world-and-you-should-care.html">Small Language Models Are Eating the World (And You Should Care)</a>
@@ -335,7 +511,7 @@
         <a href="small-language-models-are-eating-the-world-and-you-should-care.html" class="read-more">Read article</a>
       </li>
       
-      <li class="post-card">
+      <li class="post-card" data-tags="Learning,AI,Software Engineering,LLMs,Local Models">
         <time class="post-date" datetime="2026-02-09">February 8, 2026</time>
         <h2 class="post-title">
           <a href="running-llms-on-your-laptop-without-a-10k-gpu.html">Running LLMs on Your Laptop Without a $10K GPU</a>
@@ -347,7 +523,7 @@
         <a href="running-llms-on-your-laptop-without-a-10k-gpu.html" class="read-more">Read article</a>
       </li>
       
-      <li class="post-card">
+      <li class="post-card" data-tags="AI,Open Source,Technology">
         <time class="post-date" datetime="2026-02-08">February 7, 2026</time>
         <h2 class="post-title">
           <a href="how-deepseek-r1-shocked-the-world-and-why-it-matters-to-you.html">How DeepSeek R1 Shocked the World (And Why It Matters to You)</a>
@@ -359,7 +535,7 @@
         <a href="how-deepseek-r1-shocked-the-world-and-why-it-matters-to-you.html" class="read-more">Read article</a>
       </li>
       
-      <li class="post-card">
+      <li class="post-card" data-tags="Learning,Career,Software Engineering">
         <time class="post-date" datetime="2026-02-06">February 5, 2026</time>
         <h2 class="post-title">
           <a href="over-reliance-on-llms-for-coding-is-the-new-dunning-kruger.html">Over-Reliance on LLMs for Coding Is the New Dunning-Kruger</a>
@@ -371,7 +547,7 @@
         <a href="over-reliance-on-llms-for-coding-is-the-new-dunning-kruger.html" class="read-more">Read article</a>
       </li>
       
-      <li class="post-card">
+      <li class="post-card" data-tags="AI,Productivity,Software Engineering">
         <time class="post-date" datetime="2026-02-05">February 4, 2026</time>
         <h2 class="post-title">
           <a href="context-engineering-is-the-new-prompt-engineering.html">Context Engineering Is the New Prompt Engineering</a>
@@ -383,7 +559,7 @@
         <a href="context-engineering-is-the-new-prompt-engineering.html" class="read-more">Read article</a>
       </li>
       
-      <li class="post-card">
+      <li class="post-card" data-tags="Learning,AI,Software Engineering">
         <time class="post-date" datetime="2026-02-05">February 4, 2026</time>
         <h2 class="post-title">
           <a href="why-your-rag-app-gives-wrong-answers-and-how-to-actually-fix-it.html">Why Your RAG App Gives Wrong Answers — And How to Actually Fix It</a>
@@ -395,7 +571,7 @@
         <a href="why-your-rag-app-gives-wrong-answers-and-how-to-actually-fix-it.html" class="read-more">Read article</a>
       </li>
       
-      <li class="post-card">
+      <li class="post-card" data-tags="AI,Software Engineering,Quality Assurance">
         <time class="post-date" datetime="2026-02-03">February 2, 2026</time>
         <h2 class="post-title">
           <a href="ai-generated-code-fails-in-production-and-why-your-manager-wont-notice.html">AI-Generated Code Fails in Production (and Why Your Manager Won&#039;t Notice)</a>
@@ -407,7 +583,7 @@
         <a href="ai-generated-code-fails-in-production-and-why-your-manager-wont-notice.html" class="read-more">Read article</a>
       </li>
       
-      <li class="post-card">
+      <li class="post-card" data-tags="Learning,AI">
         <time class="post-date" datetime="2026-02-02">February 1, 2026</time>
         <h2 class="post-title">
           <a href="what-are-reasoning-models-and-why-do-they-think-before-answering.html">What Are Reasoning Models and Why Do They Think Before Answering?</a>
@@ -419,7 +595,7 @@
         <a href="what-are-reasoning-models-and-why-do-they-think-before-answering.html" class="read-more">Read article</a>
       </li>
       
-      <li class="post-card">
+      <li class="post-card" data-tags="Learning,AI">
         <time class="post-date" datetime="2026-01-31">January 30, 2026</time>
         <h2 class="post-title">
           <a href="the-lost-in-the-middle-problem-why-llms-ignore-the-middle-of-your-context-window.html">The &#039;Lost in the Middle&#039; Problem — Why LLMs Ignore the Middle of Your Context Window</a>
@@ -431,7 +607,7 @@
         <a href="the-lost-in-the-middle-problem-why-llms-ignore-the-middle-of-your-context-window.html" class="read-more">Read article</a>
       </li>
       
-      <li class="post-card">
+      <li class="post-card" data-tags="Learning,AI,Software Engineering">
         <time class="post-date" datetime="2026-01-29">January 28, 2026</time>
         <h2 class="post-title">
           <a href="how-llms-actually-generate-text-temperature-top-k-top-p-and-the-dice-rolls-you-never-see.html">How LLMs Actually Generate Text — Temperature, Top-K, Top-P, and the Dice Rolls You Never See</a>
@@ -443,7 +619,7 @@
         <a href="how-llms-actually-generate-text-temperature-top-k-top-p-and-the-dice-rolls-you-never-see.html" class="read-more">Read article</a>
       </li>
       
-      <li class="post-card">
+      <li class="post-card" data-tags="Learning,AI,Software Engineering">
         <time class="post-date" datetime="2026-01-27">January 26, 2026</time>
         <h2 class="post-title">
           <a href="prompt-engineering-vs-rag-vs-fine-tuning-its-not-a-ladder-its-a-decision-tree.html">Prompt Engineering vs RAG vs Fine-Tuning — It&#039;s Not a Ladder, It&#039;s a Decision Tree</a>
@@ -455,7 +631,7 @@
         <a href="prompt-engineering-vs-rag-vs-fine-tuning-its-not-a-ladder-its-a-decision-tree.html" class="read-more">Read article</a>
       </li>
       
-      <li class="post-card">
+      <li class="post-card" data-tags="Learning,AI,Software Engineering">
         <time class="post-date" datetime="2026-01-25">January 24, 2026</time>
         <h2 class="post-title">
           <a href="chunking-strategies-that-actually-work-why-your-rag-app-retrieves-garbage.html">Chunking Strategies That Actually Work — Why Your RAG App Retrieves Garbage</a>
@@ -467,7 +643,7 @@
         <a href="chunking-strategies-that-actually-work-why-your-rag-app-retrieves-garbage.html" class="read-more">Read article</a>
       </li>
       
-      <li class="post-card">
+      <li class="post-card" data-tags="Learning,AI,Software Engineering">
         <time class="post-date" datetime="2026-01-24">January 23, 2026</time>
         <h2 class="post-title">
           <a href="your-rag-pipeline-is-retrieving-garbage-heres-how-to-fix-it-with-hybrid-search-and-reranking.html">Your RAG Pipeline Is Retrieving Garbage — Here&#039;s How to Fix It with Hybrid Search and Reranking</a>
@@ -479,7 +655,7 @@
         <a href="your-rag-pipeline-is-retrieving-garbage-heres-how-to-fix-it-with-hybrid-search-and-reranking.html" class="read-more">Read article</a>
       </li>
       
-      <li class="post-card">
+      <li class="post-card" data-tags="Learning,AI,Software Engineering">
         <time class="post-date" datetime="2026-01-22">January 21, 2026</time>
         <h2 class="post-title">
           <a href="build-your-first-mcp-server-in-python-a-weekend-project-that-actually-impresses.html">Build Your First MCP Server in Python — A Weekend Project That Actually Impresses</a>
@@ -491,7 +667,7 @@
         <a href="build-your-first-mcp-server-in-python-a-weekend-project-that-actually-impresses.html" class="read-more">Read article</a>
       </li>
       
-      <li class="post-card">
+      <li class="post-card" data-tags="Learning,AI,Software Engineering">
         <time class="post-date" datetime="2026-01-20">January 19, 2026</time>
         <h2 class="post-title">
           <a href="how-ai-agents-actually-execute-multi-step-tasks-the-orchestration-nobody-talks-about.html">How AI Agents Actually Execute Multi-Step Tasks — The Orchestration Nobody Talks About</a>
@@ -503,7 +679,7 @@
         <a href="how-ai-agents-actually-execute-multi-step-tasks-the-orchestration-nobody-talks-about.html" class="read-more">Read article</a>
       </li>
       
-      <li class="post-card">
+      <li class="post-card" data-tags="Learning,AI,Software Engineering">
         <time class="post-date" datetime="2026-01-18">January 17, 2026</time>
         <h2 class="post-title">
           <a href="what-is-model-context-protocol-mcp-and-why-its-being-called-usb-c-for-ai.html">What Is Model Context Protocol (MCP) — And Why It&#039;s Being Called USB-C for AI</a>
@@ -520,5 +696,56 @@
       <p>&copy; 2026 All rights reserved.</p>
     </footer>
   </div>
+
+  <script>
+    function filterPosts(tag) {
+      // Get all post cards
+      const posts = document.querySelectorAll('.post-card');
+      const filterButtons = document.querySelectorAll('.filter-tag');
+
+      // Update active button
+      filterButtons.forEach(btn => {
+        if (btn.dataset.tag === tag) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+
+      // Filter posts
+      posts.forEach(post => {
+        const postTags = post.dataset.tags.split(',');
+
+        if (tag === 'all' || postTags.includes(tag)) {
+          post.classList.remove('hidden');
+          // Add fade-in animation
+          post.style.animation = 'fadeIn 0.3s ease-in';
+        } else {
+          post.classList.add('hidden');
+        }
+      });
+
+      // Update URL hash for shareable filters
+      window.location.hash = tag === 'all' ? '' : tag;
+    }
+
+    // Check URL hash on load
+    window.addEventListener('DOMContentLoaded', () => {
+      const hash = window.location.hash.slice(1);
+      if (hash) {
+        filterPosts(decodeURIComponent(hash));
+      }
+    });
+
+    // Add fade-in animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
 </body>
 </html>

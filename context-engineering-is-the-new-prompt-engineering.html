@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="How CLAUDE.md files and structured context are transforming AI coding. One file to rule them all.">
+  <meta name="author" content="Shibin">
+  <title>Context Engineering Is the New Prompt Engineering</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      color: #333;
+    }
+    h1 { color: #2c3e50; margin-bottom: 10px; }
+    .meta { color: #7f8c8d; margin-bottom: 20px; font-size: 14px; }
+    .tags { margin: 20px 0; }
+    .tag {
+      display: inline-block;
+      background: #ecf0f1;
+      padding: 5px 10px;
+      margin-right: 5px;
+      border-radius: 3px;
+      font-size: 12px;
+    }
+    img { max-width: 100%; height: auto; }
+    code {
+      background: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+    }
+  </style>
+</head>
+<body>
+  <article>
+    <h1>Context Engineering Is the New Prompt Engineering</h1>
+    <div class="meta">
+      <span>By Shibin</span> •
+      <span>2026-02-05</span>
+    </div>
+    <div class="tags">
+        <span class="tag">AI</span><span class="tag">Productivity</span><span class="tag">Software Engineering</span>
+      </div>
+    <div class="content">
+      <p>Last year, prompt engineering was the hot skill. Craft the perfect prompt. Use the right magic words. Add "step by step." Get better results.</p><p>That era is over.</p><p>In 2026, the teams getting dramatically better results from AI aren't tinkering with prompts. They're architecting context. They're creating `.claude/CLAUDE.md` files that sit at the root of their projects. They're encoding their entire system architecture, coding standards, and project rules into a single structured document that the AI reads before every response.</p><p>It's not flashier than prompt engineering. It's just more effective.</p><p><h2>Why Should You Care?</h2></p><p>Picture this: You're working with Claude on a feature. You give it a task. It generates code that's syntactically perfect but doesn't match your project's patterns. It uses `styled-components` when your codebase uses Tailwind. It puts business logic in components when you have a strict repository pattern. It ignores your testing standards.</p><p>So you say: "We use Tailwind, not styled-components."</p><p>Claude fixes it.</p><p>You say: "Put business logic in repositories, not components."</p><p>Claude adjusts.</p><p>You say: "Add unit tests using Vitest."</p><p>Claude adds them.</p><p>You've just engaged in five rounds of back-and-forth context negotiation. You've burned tokens. You've wasted time. And you're frustrated.</p><p>Now imagine a different scenario. The project has a `CLAUDE.md` file. It contains:</p><p>- Your exact tech stack</p>
+<p>- Your styling approach and typography system</p>
+<p>- Your folder structure and where to put things</p>
+<p>- Your testing framework and where tests live</p>
+<p>- Your database access patterns</p>
+<p>- Your component rules</p>
+<p>- Your exact conventions for naming, formatting, and architecture</p><p>Claude reads this file once at the start. Now when you ask for a feature, it generates code that fits your project perfectly. First try.</p><p>Recent studies show that structured context engineering reduces hallucinations by 60% and improves task completion accuracy by 45% compared to prompt engineering alone. This isn't magic wording. This is information architecture.</p><p><h2>The Context Engineering Manifesto</h2></p><p>Context engineering is broader than prompt engineering. It's not just about what you say—it's about what the AI <em>knows</em> before you say anything.</p><p><strong>Prompt Engineering:</strong> "Write a function that validates email addresses"</p><p><strong>Context Engineering:</strong> The AI reads your CLAUDE.md, which says:</p>
+<p>- You use TypeScript</p>
+<p>- All validators go in `lib/validators/`</p>
+<p>- Use Zod for validation</p>
+<p>- Tests go in `tests/unit/`</p>
+<p>- Follow existing validator patterns in the codebase</p>
+<p>- Export both `validate<em>` function and type `</em>Error`</p><p>Now when you ask: "Write an email validator," the AI generates code that already fits perfectly into your system.</p><p>Think of it as the difference between giving someone directions ("turn left at the big oak tree") versus giving them a GPS with your entire city mapped out.</p><p>![Mermaid Diagram](https://raw.githubusercontent.com/thousandmiles-ai/blogs/main/blog-images/context-engineering-is-the-new-prompt-engineering/mermaid-b406b1d90636a1105d0aa9a53324d4b7.svg)</p><p><h2>Anatomy of a Good CLAUDE.md File</h2></p><p>Let me break down what goes into an effective context file. Here's the structure:</p><p><h3>1. Project Overview</h3></p><p>```markdown</p>
+<p><h1>Project Name</h1></p><p>One sentence what this is. Tech stack. Key constraints.</p><p>> Next.js + Tailwind CSS + Supabase + Drizzle ORM</p>
+<p>```</p><p>Why? The AI needs to know the boundaries of the project before it starts working.</p><p><h3>2. Mandatory Completion Checklist</h3></p><p>```markdown</p>
+<p><h2>MANDATORY: Completion Checklist</h2></p><p>DO NOT declare any task complete until:</p>
+<p>1. Write tests — Unit/Integration/E2E as applicable</p>
+<p>2. Run `npm test` — All tests pass</p>
+<p>3. Run `npm run build` — Build succeeds</p>
+<p>4. Verify — If any fail, fix it before summarizing</p>
+<p>```</p><p>Why? This forces the AI (and you) to have quality gates. Tasks don't end until they're actually done.</p><p><h3>3. Rules at a Glance</h3></p><p>Quick reference table. Styling approach. Where components go. How to structure files. What frameworks to use for what.</p><p>```markdown</p>
+<p>| Situation | Action |</p>
+<p>| Page title | `<h1 className="text-heading-32">` |</p>
+<p>| Card styling | Direct Tailwind, no component |</p>
+<p>| Database queries | Drizzle repositories in `src/lib/repositories/drizzle/` |</p>
+<p>```</p><p>Why? The AI can scan this table before generating code and match every pattern.</p><p><h3>4. Styling System</h3></p><p>Exactly how typography works in your project. What classes exist. When to use what.</p><p>```markdown</p>
+<p><h2>Purpose-Based Typography</h2></p><p>- `text-heading-32`: Page titles, 2rem, 600 weight</p>
+<p>- `text-heading-24`: Section headers, 1.5rem, 600 weight</p>
+<p>- `text-copy-16`: Body text, 1rem, 400 weight, relaxed leading</p>
+<p>- `text-label-14`: UI labels, 0.875rem, 500 weight</p>
+<p>```</p><p>Why? Otherwise AI generates random class names or uses hardcoded pixel values instead of your system.</p><p><h3>5. Component Rules</h3></p><p>When to create components. What goes in components. What doesn't.</p><p>```markdown</p>
+<p><h2>DO NOT Create Components For</h2></p>
+<p>- Styling only — use Tailwind directly</p>
+<p>- Single-use layouts — inline the classes</p>
+<p>- Wrapper components</p><p><h2>DO Create Components When</h2></p>
+<p>- Behavior/State exists (toggle, form, async actions)</p>
+<p>- Used 3+ times identically</p>
+<p>- Requires accessibility logic</p>
+<p>```</p><p>Why? Without this, you get components for everything. Bloated folders. Prop chaos.</p><p><h3>6. Database Access Patterns</h3></p><p>Exactly how to access data. Where repositories live. How to structure queries.</p><p>```markdown</p>
+<p><h2>Database — Use Drizzle Repositories</h2></p><p>ALL database queries go in `src/lib/repositories/drizzle/`.</p>
+<p>Never use Supabase client directly for tables.</p>
+<p>ONLY use Supabase client for `supabase.auth.<em>` and `supabase.storage.</em>`.</p>
+<p>```</p><p>Why? Database patterns are architectural decisions, not suggestions. The AI needs to know the non-negotiables.</p><p><h3>7. Testing Structure</h3></p><p>Where tests go. What frameworks. What counts as tested.</p><p>```markdown</p>
+<p><h2>Testing — Mandatory</h2></p><p>| Change Type | Unit | Integration | E2E |</p>
+<p>| New utility | REQUIRED | — | — |</p>
+<p>| New API endpoint | REQUIRED | REQUIRED | If user-facing |</p>
+<p>| New feature | REQUIRED | If API | REQUIRED |</p>
+<p>```</p><p>Why? Different changes need different testing levels. Without this, the AI either over-tests or under-tests.</p><p><h3>8. Project Structure</h3></p><p>Where things go. Folder conventions. What each folder contains.</p><p>```markdown</p>
+<p><h2>Source Structure</h2></p><p>src/</p>
+<p>├── components/</p>
+<p>│   ├── ui/          # shadcn/ui (behavior-focused)</p>
+<p>│   └── constructs/  # Reusable patterns</p>
+<p>├── app/</p>
+<p>│   └── (protected)/</p>
+<p>├── lib/</p>
+<p>│   ├── repositories/  # ALL database queries</p>
+<p>│   └── utils/</p>
+<p>```</p><p>Why? The AI needs to know exactly where to put new code. Without this, files go everywhere.</p><p><h2>Context Engineering vs. Prompt Engineering: A Real Example</h2></p><p>Let's see the difference in action.</p><p><h3>Without Context Engineering</h3></p><p><strong>You:</strong> "Create a course enrollment component"</p><p><strong>Claude generates:</strong></p>
+<p>```tsx</p>
+<p>import styled from 'styled-components'</p><p>const CourseCard = styled.div`</p>
+<p>  padding: 24px;</p>
+<p>  border-radius: 8px;</p>
+<p>  background: #f5f5f5;</p>
+<p>  &:hover { background: #e0e0e0; }</p>
+<p>`</p><p>export function EnrollButton() {</p>
+<p>  return <button>Enroll Now</button></p>
+<p>}</p>
+<p>```</p><p><strong>Problems:</strong></p>
+<p>- Uses styled-components (wrong—you use Tailwind)</p>
+<p>- No TypeScript types</p>
+<p>- Component in wrong location</p>
+<p>- No test file</p>
+<p>- Hardcoded colors instead of semantic values</p><p><strong>You:</strong> "We use Tailwind, not styled-components. Put it in `components/constructs/`. Add types."</p><p>Back-and-forth negotiation begins.</p><p><h3>With Context Engineering</h3></p><p>Your CLAUDE.md says:</p><p>```markdown</p>
+<p>- Styling: Use Tailwind directly. No CSS-in-JS.</p>
+<p>- Typography: Use purpose-based classes (text-heading-<em>, text-copy-</em>)</p>
+<p>- Components: Only for behavior. Styling = Tailwind directly.</p>
+<p>- Constructs: Reusable patterns go in `components/constructs/`</p>
+<p>- Testing: Unit tests in `tests/unit/`, E2E in `tests/e2e/`</p>
+<p>- Naming: Kebab-case filenames</p>
+<p>```</p><p><strong>You:</strong> "Create a course enrollment component"</p><p><strong>Claude generates:</strong></p>
+<p>```tsx</p>
+<p>// components/constructs/course-enrollment-button.tsx</p>
+<p>interface CourseEnrollmentButtonProps {</p>
+<p>  courseId: string</p>
+<p>  onEnroll: () => Promise<void></p>
+<p>}</p><p>export function CourseEnrollmentButton({</p>
+<p>  courseId,</p>
+<p>  onEnroll,</p>
+<p>}: CourseEnrollmentButtonProps) {</p>
+<p>  const [pending, setPending] = useState(false)</p>
+<p>  // ... implementation using Tailwind</p>
+<p>}</p>
+<p>```</p><p>Plus a test file. Plus proper types. First try.</p><p>The only difference? The AI read your CLAUDE.md.</p><p><h2>Building Your Own Context Engineering System</h2></p><p>If you're running an AI-heavy project, here's how to start:</p><p><h3>Step 1: Audit Your Patterns</h3></p><p>Spend a day documenting how your project actually works:</p>
+<p>- How do you style things?</p>
+<p>- Where do files go?</p>
+<p>- What naming conventions do you use?</p>
+<p>- What's your testing approach?</p>
+<p>- What frameworks are non-negotiable?</p><p><h3>Step 2: Create `.claude/CLAUDE.md`</h3></p><p>Write this down. Be specific. Use examples. Include the annoying edge cases that the AI will probably get wrong.</p><p>```</p>
+<p>/project-root/</p>
+<p>├── .claude/</p>
+<p>│   └── CLAUDE.md</p>
+<p>├── src/</p>
+<p>├── tests/</p>
+<p>└── ...</p>
+<p>```</p><p><h3>Step 3: Reference It in Your Prompts</h3></p><p>Just mention it: "Before you start, check the CLAUDE.md file in `.claude/` for project rules and conventions."</p><p>Or let the AI infer it. Many modern AI systems automatically scan for context files.</p><p><h3>Step 4: Iterate</h3></p><p>The first version won't be perfect. When the AI does something wrong, add a rule to CLAUDE.md. When you notice a pattern, document it. Over time, your context file becomes more powerful.</p><p>![Mermaid Diagram](https://raw.githubusercontent.com/thousandmiles-ai/blogs/main/blog-images/context-engineering-is-the-new-prompt-engineering/mermaid-8b9b612077df6a7720d48883b4a3a03e.svg)</p><p><h2>The Teams Winning With Context Engineering</h2></p><p>Companies and open-source projects using context engineering in 2026 are:</p><p>1. <strong>Shipping faster</strong> — First-try accuracy means fewer iterations</p>
+<p>2. <strong>Maintaining consistency</strong> — The CLAUDE.md becomes a source of truth</p>
+<p>3. <strong>Onboarding new team members</strong> — Read the CLAUDE.md, understand the project</p>
+<p>4. <strong>Training junior developers</strong> — Your coding standards are documented, not tribal knowledge</p><p>Some teams even use context files for other purposes:</p>
+<p>- <strong>Onboarding documentation</strong> — New developers read CLAUDE.md to understand the project</p>
+<p>- <strong>Code review guidelines</strong> — The CLAUDE.md <em>is</em> the standard</p>
+<p>- <strong>AI training data</strong> — Structure your project around the context file, get better AI results</p><p><h2>Sign-Off: Prompt Engineering Was Just the First Stage</h2></p><p>Here's what's happened: Prompt engineering was the first wave. "How do I get the AI to understand what I want?"</p><p>Context engineering is the second wave. "How do I structure my entire project so the AI automatically understands?"</p><p>This isn't about being clever with words. It's about being systematic with information. You're not asking the AI to read your mind. You're handing it a map to your entire codebase's rules.</p><p>In 2026, the competitive advantage isn't who can write the best prompts. It's who can structure the clearest context.</p><p>Start small. Pick one project. Audit your patterns. Write a CLAUDE.md file. Use it for a week. See how many rounds of back-and-forth disappear.</p><p>That's context engineering. And it's the present, not the future.</p><p>---</p><p><h2>References & Further Reading</h2></p><p>- [Context Engineering Guide - Prompt Engineering Guide](https://www.promptingguide.ai/guides/context-engineering-guide)</p>
+<p>- [AI Context Engineering in 2026: Beyond Prompt Engineering](https://sombrainc.com/blog/ai-context-engineering-guide)</p>
+<p>- [The Power of Context Engineering - Towards Data Science](https://towardsdatascience.com/beyond-prompting-the-power-of-context-engineering/)</p>
+<p>- [Prompt Engineering Guide 2026 - Analytics Vidhya](https://www.analyticsvidhya.com/blog/2026/01/master-prompt-engineering/)</p>
+    </div>
+  </article>
+</body>
+</html>

@@ -3,58 +3,281 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="You set temperature to 0.7 because a tutorial told you to. But do you know what that actually does? Under the hood of every LLM response is a probability game — here's how the dice are loaded.">
+  <meta name="description" content="You set temperature to 0.7 because a tutorial told you to. But do you know what that actually does? Under the hood of every LLM response is a probability game — here&#039;s how the dice are loaded.">
   <meta name="author" content="Shibin">
+  <meta property="og:title" content="How LLMs Actually Generate Text — Temperature, Top-K, Top-P, and the Dice Rolls You Never See">
+  <meta property="og:description" content="You set temperature to 0.7 because a tutorial told you to. But do you know what that actually does? Under the hood of every LLM response is a probability game — here&#039;s how the dice are loaded.">
+  <meta property="og:type" content="article">
   <title>How LLMs Actually Generate Text — Temperature, Top-K, Top-P, and the Dice Rolls You Never See</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f8f9fa;
+      --bg-code: #f6f8fa;
+      --text-primary: #1a202c;
+      --text-secondary: #4a5568;
+      --text-tertiary: #718096;
+      --border-color: #e2e8f0;
+      --accent-color: #3b82f6;
+      --accent-hover: #2563eb;
+      --tag-bg: #e0e7ff;
+      --tag-text: #3730a3;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+      --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-primary: #1a202c;
+        --bg-secondary: #2d3748;
+        --bg-code: #2d3748;
+        --text-primary: #f7fafc;
+        --text-secondary: #e2e8f0;
+        --text-tertiary: #a0aec0;
+        --border-color: #4a5568;
+        --accent-color: #60a5fa;
+        --accent-hover: #3b82f6;
+        --tag-bg: #3730a3;
+        --tag-text: #e0e7ff;
+      }
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      line-height: 1.6;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.7;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .container {
       max-width: 800px;
       margin: 0 auto;
-      padding: 20px;
-      color: #333;
+      padding: 2rem 1.5rem;
     }
-    h1 { color: #2c3e50; margin-bottom: 10px; }
-    .meta { color: #7f8c8d; margin-bottom: 20px; font-size: 14px; }
-    .tags { margin: 20px 0; }
+
+    .header {
+      margin-bottom: 3rem;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      color: var(--accent-color);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 2rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: var(--accent-hover);
+    }
+
+    .back-link::before {
+      content: "←";
+      margin-right: 0.5rem;
+    }
+
+    article h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      line-height: 1.2;
+      color: var(--text-primary);
+      margin-bottom: 1rem;
+    }
+
+    @media (max-width: 640px) {
+      article h1 {
+        font-size: 2rem;
+      }
+    }
+
+    .meta {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--text-tertiary);
+      font-size: 0.875rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .meta-divider {
+      color: var(--border-color);
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+
     .tag {
       display: inline-block;
-      background: #ecf0f1;
-      padding: 5px 10px;
-      margin-right: 5px;
-      border-radius: 3px;
-      font-size: 12px;
+      background: var(--tag-bg);
+      color: var(--tag-text);
+      padding: 0.375rem 0.875rem;
+      border-radius: 0.375rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      transition: transform 0.2s;
     }
-    img { max-width: 100%; height: auto; }
-    code {
-      background: #f4f4f4;
-      padding: 2px 6px;
-      border-radius: 3px;
-      font-family: 'Courier New', monospace;
+
+    .tag:hover {
+      transform: translateY(-1px);
+    }
+
+    .content {
+      font-size: 1.0625rem;
+      color: var(--text-secondary);
+    }
+
+    .content h2 {
+      font-size: 1.875rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 2.5rem 0 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    .content h3 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 2rem 0 1rem;
+    }
+
+    .content h4 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 1.5rem 0 0.75rem;
+    }
+
+    .content p {
+      margin: 1rem 0;
+      line-height: 1.8;
+    }
+
+    .content strong {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .content a {
+      color: var(--accent-color);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.2s;
+    }
+
+    .content a:hover {
+      border-bottom-color: var(--accent-color);
+    }
+
+    .content code {
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      font-size: 0.875em;
+      background: var(--bg-code);
+      padding: 0.2em 0.4em;
+      border-radius: 0.25rem;
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    .content pre {
+      background: var(--bg-code);
+      padding: 1.25rem;
+      border-radius: 0.5rem;
+      overflow-x: auto;
+      margin: 1.5rem 0;
+      border: 1px solid var(--border-color);
+    }
+
+    .content pre code {
+      background: none;
+      padding: 0;
+      border: none;
+      font-size: 0.875rem;
+      line-height: 1.6;
+    }
+
+    .content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 0.5rem;
+      margin: 2rem 0;
+      box-shadow: var(--shadow-md);
+    }
+
+    .content ul, .content ol {
+      margin: 1rem 0 1rem 1.5rem;
+    }
+
+    .content li {
+      margin: 0.5rem 0;
+    }
+
+    .content blockquote {
+      border-left: 4px solid var(--accent-color);
+      padding-left: 1rem;
+      margin: 1.5rem 0;
+      color: var(--text-tertiary);
+      font-style: italic;
+    }
+
+    .footer {
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border-color);
+      text-align: center;
+      color: var(--text-tertiary);
+      font-size: 0.875rem;
     }
   </style>
 </head>
 <body>
-  <article>
-    <h1>How LLMs Actually Generate Text — Temperature, Top-K, Top-P, and the Dice Rolls You Never See</h1>
-    <div class="meta">
-      <span>By Shibin</span> •
-      <span>2026-01-29</span>
+  <div class="container">
+    <a href="index.html" class="back-link">All Posts</a>
+    <div class="header">
+      <article>
+        <h1>How LLMs Actually Generate Text — Temperature, Top-K, Top-P, and the Dice Rolls You Never See</h1>
+        <div class="meta">
+          <span>Shibin</span>
+          <span class="meta-divider">•</span>
+          <time datetime="2026-01-29">January 28, 2026</time>
+        </div>
+        <div class="tags">
+          <span class="tag">Learning</span><span class="tag">AI</span><span class="tag">Software Engineering</span>
+        </div>
+      </article>
     </div>
-    <div class="tags">
-        <span class="tag">Learning</span><span class="tag">AI</span><span class="tag">Software Engineering</span>
-      </div>
     <div class="content">
-      <p><h1>How LLMs Actually Generate Text — Temperature, Top-K, Top-P, and the Dice Rolls You Never See</h1></p><p><strong>Every token an LLM outputs is a gamble. Understanding how that gamble works changes how you use these models forever.</strong></p><p>---</p><p><h2>The Same Prompt, Three Different Answers</h2></p><p>Try this experiment. Open any LLM — ChatGPT, Claude, Gemini, whatever you have access to. Ask it: "Write a one-sentence product description for a coffee mug." Hit send. Copy the result. Now ask the exact same question again. And again.</p><p>Three attempts. Three different sentences. Maybe slightly different, maybe wildly different. But almost certainly not identical.</p><p>Why? You gave it the exact same input. The model's weights didn't change between requests. The system prompt is the same. So where does the randomness come from?</p><p>It comes from the sampling step — the moment after the model calculates probabilities for every possible next word, and before it actually picks one. That choice — how the model selects from thousands of candidates — is controlled by parameters you've probably seen but maybe never understood: temperature, top-K, top-P.</p><p>These aren't minor settings. They fundamentally change the model's behavior. Get them wrong, and your creative writing tool sounds robotic. Or your code assistant hallucinates syntax that doesn't exist. Or your customer support bot gives a different answer to the same question every time.</p><p><h2>Why Should You Care?</h2></p><p>If you're building anything with an LLM — even just making API calls — you're setting these parameters, whether you know it or not. Every API has defaults. Every playground has sliders. And most developers just leave them alone or copy values from tutorials without understanding what they do.</p><p>Understanding sampling isn't academic — it's one of the highest-leverage ways to improve LLM output quality without changing a single word of your prompt. It also shows up in interviews constantly. "Explain how temperature works" is practically a warmup question at any AI-focused company.</p><p><h2>Let Me Back Up — How an LLM Picks the Next Word</h2></p><p>Here's what happens every time an LLM generates a single token:</p><p>1. The model processes your input and produces a set of <strong>logits</strong> — raw scores for every token in its vocabulary (typically 30,000–100,000+ tokens).</p>
+      <h1>How LLMs Actually Generate Text — Temperature, Top-K, Top-P, and the Dice Rolls You Never See</h1></p><p><strong>Every token an LLM outputs is a gamble. Understanding how that gamble works changes how you use these models forever.</strong></p><p>---</p><p><h2>The Same Prompt, Three Different Answers</h2></p><p>Try this experiment. Open any LLM — ChatGPT, Claude, Gemini, whatever you have access to. Ask it: "Write a one-sentence product description for a coffee mug." Hit send. Copy the result. Now ask the exact same question again. And again.</p><p>Three attempts. Three different sentences. Maybe slightly different, maybe wildly different. But almost certainly not identical.</p><p>Why? You gave it the exact same input. The model's weights didn't change between requests. The system prompt is the same. So where does the randomness come from?</p><p>It comes from the sampling step — the moment after the model calculates probabilities for every possible next word, and before it actually picks one. That choice — how the model selects from thousands of candidates — is controlled by parameters you've probably seen but maybe never understood: temperature, top-K, top-P.</p><p>These aren't minor settings. They fundamentally change the model's behavior. Get them wrong, and your creative writing tool sounds robotic. Or your code assistant hallucinates syntax that doesn't exist. Or your customer support bot gives a different answer to the same question every time.</p><p><h2>Why Should You Care?</h2></p><p>If you're building anything with an LLM — even just making API calls — you're setting these parameters, whether you know it or not. Every API has defaults. Every playground has sliders. And most developers just leave them alone or copy values from tutorials without understanding what they do.</p><p>Understanding sampling isn't academic — it's one of the highest-leverage ways to improve LLM output quality without changing a single word of your prompt. It also shows up in interviews constantly. "Explain how temperature works" is practically a warmup question at any AI-focused company.</p><p><h2>Let Me Back Up — How an LLM Picks the Next Word</h2></p><p>Here's what happens every time an LLM generates a single token:</p><p>1. The model processes your input and produces a set of <strong>logits</strong> — raw scores for every token in its vocabulary (typically 30,000–100,000+ tokens).
 <p>2. Those logits go through a <strong>softmax function</strong>, which converts them into probabilities that sum to 1.</p>
 <p>3. A <strong>sampling strategy</strong> picks one token from that probability distribution.</p>
-<p>4. That token gets appended to the output, and the whole process repeats for the next token.</p><p>The model generates text one token at a time, left to right. It doesn't plan ahead. It doesn't have a draft that it edits. Every single token is a fresh probabilistic choice based on everything that came before it.</p><p>![Mermaid Diagram](https://raw.githubusercontent.com/thousandmiles-ai/blogs/main/blog-images/how-llms-actually-generate-text-temperature-top-k-top-p-and-the-dice-rolls-you-never-see/mermaid-c90f1f4bd8e17e1707d0ebe51fa2eeeb.svg)</p><p><em>The generation loop: predict probabilities for all tokens, sample one, append, repeat. The sampling strategy is where the magic (and danger) happens.</em></p><p><h2>The Sampling Strategies — One by One</h2></p><p><h3>Greedy Decoding: Always Pick the Winner</h3></p><p>The simplest strategy. At every step, pick the token with the highest probability. No randomness, no dice rolling. If "the" has probability 0.35 and "a" has 0.20, you always pick "the."</p><p>Sounds sensible, right? But greedy decoding has a nasty problem: it's boring. It tends to produce repetitive, predictable text. It gets stuck in loops. It picks the "safe" word every time, and the result reads like it was written by someone who's afraid to take any creative risk.</p><p>Greedy decoding is fine for tasks where you want the single most likely answer — like classification or extraction. For anything generative, it's almost never what you want.</p><p><h3>Temperature: Turning Up the Creativity Dial</h3></p><p>Temperature is the parameter everyone knows and almost nobody understands precisely. Here's what it actually does.</p><p>Before the softmax function converts logits to probabilities, temperature <strong>divides the logits by a number.</strong> That's it. That's the whole mechanism.</p><p>But the effect is dramatic:</p><p><strong>Temperature = 1.0</strong> — No change. The probabilities are whatever the model naturally produces.</p><p><strong>Temperature < 1.0</strong> (say, 0.3) — The logits get divided by a small number, which <em>amplifies</em> the differences between them. High-probability tokens become even more probable. Low-probability tokens become nearly impossible. The distribution gets "peaky" — the model becomes more confident, more predictable, more conservative.</p><p><strong>Temperature > 1.0</strong> (say, 1.5) — The logits get divided by a large number, which <em>flattens</em> the differences. Every token becomes more equally likely. The distribution spreads out — the model becomes more random, more creative, more surprising. Also more likely to say something unhinged.</p><p>Think of temperature like a volume knob for randomness. Turn it down for math homework. Turn it up for poetry. Turn it all the way down (temperature = 0) and you get greedy decoding — pure determinism.</p><p><h3>Top-K Sampling: Only Consider the Top Candidates</h3></p><p>Top-K is a filter. Before sampling, it looks at all 50,000+ tokens in the vocabulary, keeps only the K most probable ones, and throws the rest away. The probability mass gets redistributed among the survivors.</p><p>Set K = 50, and the model can only choose from its top 50 candidates. Set K = 5, and it's stuck with the top 5. Set K = 1, and you're back to greedy decoding.</p><p>The problem with top-K? The number K is fixed, regardless of context. Sometimes the model is very confident — 3 tokens account for 95% of the probability, and everything else is noise. A K of 50 would include 47 tokens that have almost zero chance of being right. Other times the model is uncertain — 200 tokens each have a small but meaningful probability. A K of 50 would cut off potentially good options.</p><p>Top-K doesn't adapt to the shape of the distribution. It's blunt.</p><p><h3>Top-P (Nucleus Sampling): The Smart Filter</h3></p><p>Top-P, also called nucleus sampling, is the clever answer to top-K's rigidity. Instead of keeping a fixed number of tokens, it keeps the smallest set of tokens whose combined probability exceeds a threshold P.</p><p>Set P = 0.9, and the model keeps adding tokens (from most to least probable) until their probabilities sum to 0.9. If the model is confident, that might be only 3 tokens. If the model is uncertain, it might be 200.</p><p>The beauty is that top-P adapts to context. When the next word is obvious ("The Eiffel Tower is in ___"), it narrows down to very few candidates. When the next word could genuinely go many ways ("She felt ___"), it keeps a wider pool.</p><p>This is why top-P has become the default sampling strategy in most production systems. It's more robust across different situations than top-K.</p><p>![Mermaid Diagram](https://raw.githubusercontent.com/thousandmiles-ai/blogs/main/blog-images/how-llms-actually-generate-text-temperature-top-k-top-p-and-the-dice-rolls-you-never-see/mermaid-de0d7615c66d27cc6d6fa91a0225b740.svg)</p><p><em>Top-K keeps a fixed number regardless of confidence. Top-P adapts — tight when confident, wide when uncertain.</em></p><p><h3>Min-P: The 2026 Newcomer</h3></p><p>There's a newer approach that's gaining traction, especially in open-source communities. Min-P sets a threshold relative to the most probable token. If the top token has probability 0.8 and min-P is 0.1, any token with probability below 0.08 (10% of 0.8) gets cut.</p><p>The elegance is that it scales with the model's own confidence. When the model is very sure (top token at 0.95), the threshold is high and very few alternatives survive. When the model is less sure (top token at 0.2), the threshold drops and more tokens stay in the pool.</p><p>As of early 2026, the combination of temperature + min-P is what many open-source LLM users have converged on as the most practical setup.</p><p><h2>Practical Guide: What Settings for What Task</h2></p><p>Here's a cheat sheet based on how these strategies interact:</p><p><strong>Code generation, factual Q&A, data extraction:</strong> Temperature 0–0.3, top-P 0.9. You want determinism and accuracy. The model should pick the most likely token almost every time.</p><p><strong>General chatbot, customer support:</strong> Temperature 0.5–0.7, top-P 0.9. A balance of reliability and natural-sounding language. Not robotic, not chaotic.</p><p><strong>Creative writing, brainstorming, poetry:</strong> Temperature 0.8–1.2, top-P 0.95. Give the model room to explore. Higher temperature means more surprising word choices.</p><p><strong>Never go above 1.5 for temperature</strong> unless you're doing it for fun. At that point, the probability distribution is so flat that the model starts producing incoherent output — like a writer who's had too much coffee and is just free-associating.</p><p><h2>Mistakes That Bite — Common Misunderstandings</h2></p><p><strong>"Temperature controls how smart the model is."</strong> No. It controls the randomness of token selection. A low temperature doesn't make the model think harder — it makes it pick the highest-probability token more consistently. If the model's probabilities are wrong, low temperature just makes it confidently wrong.</p><p><strong>"I should always use top-K AND top-P together."</strong> You can, but be careful. If you set K=50 and P=0.9, the effective filter is whichever is more restrictive. Often one overrides the other, and the second parameter does nothing. Pick one or understand how they interact in your specific framework.</p><p><strong>"Temperature 0 means the same output every time."</strong> Almost. It means greedy decoding — always picking the highest-probability token. But some implementations have floating-point tie-breaking that can occasionally vary. For true determinism, also set a fixed random seed if the API supports it.</p><p><h2>Now Go Break Something — Where to Go from Here</h2></p><p>The best way to internalize these concepts is to play with them:</p><p>- <strong>Use the OpenAI or Anthropic playground</strong> — they have real-time sliders for temperature, top-P, and top-K. Ask the same question at different settings and watch how the output changes.</p>
+<p>4. That token gets appended to the output, and the whole process repeats for the next token.</p><p>The model generates text one token at a time, left to right. It doesn't plan ahead. It doesn't have a draft that it edits. Every single token is a fresh probabilistic choice based on everything that came before it.</p><p>!<a href="https://raw.githubusercontent.com/thousandmiles-ai/blogs/main/blog-images/how-llms-actually-generate-text-temperature-top-k-top-p-and-the-dice-rolls-you-never-see/mermaid-c90f1f4bd8e17e1707d0ebe51fa2eeeb.svg" target="_blank" rel="noopener">Mermaid Diagram</a></p><p><em>The generation loop: predict probabilities for all tokens, sample one, append, repeat. The sampling strategy is where the magic (and danger) happens.</em></p><p><h2>The Sampling Strategies — One by One</h2></p><p><h3>Greedy Decoding: Always Pick the Winner</h3></p><p>The simplest strategy. At every step, pick the token with the highest probability. No randomness, no dice rolling. If "the" has probability 0.35 and "a" has 0.20, you always pick "the."</p><p>Sounds sensible, right? But greedy decoding has a nasty problem: it's boring. It tends to produce repetitive, predictable text. It gets stuck in loops. It picks the "safe" word every time, and the result reads like it was written by someone who's afraid to take any creative risk.</p><p>Greedy decoding is fine for tasks where you want the single most likely answer — like classification or extraction. For anything generative, it's almost never what you want.</p><p><h3>Temperature: Turning Up the Creativity Dial</h3></p><p>Temperature is the parameter everyone knows and almost nobody understands precisely. Here's what it actually does.</p><p>Before the softmax function converts logits to probabilities, temperature <strong>divides the logits by a number.</strong> That's it. That's the whole mechanism.</p><p>But the effect is dramatic:</p><p><strong>Temperature = 1.0</strong> — No change. The probabilities are whatever the model naturally produces.</p><p><strong>Temperature < 1.0</strong> (say, 0.3) — The logits get divided by a small number, which <em>amplifies</em> the differences between them. High-probability tokens become even more probable. Low-probability tokens become nearly impossible. The distribution gets "peaky" — the model becomes more confident, more predictable, more conservative.</p><p><strong>Temperature > 1.0</strong> (say, 1.5) — The logits get divided by a large number, which <em>flattens</em> the differences. Every token becomes more equally likely. The distribution spreads out — the model becomes more random, more creative, more surprising. Also more likely to say something unhinged.</p><p>Think of temperature like a volume knob for randomness. Turn it down for math homework. Turn it up for poetry. Turn it all the way down (temperature = 0) and you get greedy decoding — pure determinism.</p><p><h3>Top-K Sampling: Only Consider the Top Candidates</h3></p><p>Top-K is a filter. Before sampling, it looks at all 50,000+ tokens in the vocabulary, keeps only the K most probable ones, and throws the rest away. The probability mass gets redistributed among the survivors.</p><p>Set K = 50, and the model can only choose from its top 50 candidates. Set K = 5, and it's stuck with the top 5. Set K = 1, and you're back to greedy decoding.</p><p>The problem with top-K? The number K is fixed, regardless of context. Sometimes the model is very confident — 3 tokens account for 95% of the probability, and everything else is noise. A K of 50 would include 47 tokens that have almost zero chance of being right. Other times the model is uncertain — 200 tokens each have a small but meaningful probability. A K of 50 would cut off potentially good options.</p><p>Top-K doesn't adapt to the shape of the distribution. It's blunt.</p><p><h3>Top-P (Nucleus Sampling): The Smart Filter</h3></p><p>Top-P, also called nucleus sampling, is the clever answer to top-K's rigidity. Instead of keeping a fixed number of tokens, it keeps the smallest set of tokens whose combined probability exceeds a threshold P.</p><p>Set P = 0.9, and the model keeps adding tokens (from most to least probable) until their probabilities sum to 0.9. If the model is confident, that might be only 3 tokens. If the model is uncertain, it might be 200.</p><p>The beauty is that top-P adapts to context. When the next word is obvious ("The Eiffel Tower is in ___"), it narrows down to very few candidates. When the next word could genuinely go many ways ("She felt ___"), it keeps a wider pool.</p><p>This is why top-P has become the default sampling strategy in most production systems. It's more robust across different situations than top-K.</p><p>!<a href="https://raw.githubusercontent.com/thousandmiles-ai/blogs/main/blog-images/how-llms-actually-generate-text-temperature-top-k-top-p-and-the-dice-rolls-you-never-see/mermaid-de0d7615c66d27cc6d6fa91a0225b740.svg" target="_blank" rel="noopener">Mermaid Diagram</a></p><p><em>Top-K keeps a fixed number regardless of confidence. Top-P adapts — tight when confident, wide when uncertain.</em></p><p><h3>Min-P: The 2026 Newcomer</h3></p><p>There's a newer approach that's gaining traction, especially in open-source communities. Min-P sets a threshold relative to the most probable token. If the top token has probability 0.8 and min-P is 0.1, any token with probability below 0.08 (10% of 0.8) gets cut.</p><p>The elegance is that it scales with the model's own confidence. When the model is very sure (top token at 0.95), the threshold is high and very few alternatives survive. When the model is less sure (top token at 0.2), the threshold drops and more tokens stay in the pool.</p><p>As of early 2026, the combination of temperature + min-P is what many open-source LLM users have converged on as the most practical setup.</p><p><h2>Practical Guide: What Settings for What Task</h2></p><p>Here's a cheat sheet based on how these strategies interact:</p><p><strong>Code generation, factual Q&A, data extraction:</strong> Temperature 0–0.3, top-P 0.9. You want determinism and accuracy. The model should pick the most likely token almost every time.</p><p><strong>General chatbot, customer support:</strong> Temperature 0.5–0.7, top-P 0.9. A balance of reliability and natural-sounding language. Not robotic, not chaotic.</p><p><strong>Creative writing, brainstorming, poetry:</strong> Temperature 0.8–1.2, top-P 0.95. Give the model room to explore. Higher temperature means more surprising word choices.</p><p><strong>Never go above 1.5 for temperature</strong> unless you're doing it for fun. At that point, the probability distribution is so flat that the model starts producing incoherent output — like a writer who's had too much coffee and is just free-associating.</p><p><h2>Mistakes That Bite — Common Misunderstandings</h2></p><p><strong>"Temperature controls how smart the model is."</strong> No. It controls the randomness of token selection. A low temperature doesn't make the model think harder — it makes it pick the highest-probability token more consistently. If the model's probabilities are wrong, low temperature just makes it confidently wrong.</p><p><strong>"I should always use top-K AND top-P together."</strong> You can, but be careful. If you set K=50 and P=0.9, the effective filter is whichever is more restrictive. Often one overrides the other, and the second parameter does nothing. Pick one or understand how they interact in your specific framework.</p><p><strong>"Temperature 0 means the same output every time."</strong> Almost. It means greedy decoding — always picking the highest-probability token. But some implementations have floating-point tie-breaking that can occasionally vary. For true determinism, also set a fixed random seed if the API supports it.</p><p><h2>Now Go Break Something — Where to Go from Here</h2></p><p>The best way to internalize these concepts is to play with them:</p><p>- <strong>Use the OpenAI or Anthropic playground</strong> — they have real-time sliders for temperature, top-P, and top-K. Ask the same question at different settings and watch how the output changes.</p>
 <p>- <strong>Try the Hugging Face text generation playground</strong> — it shows the token probabilities alongside the generated text, so you can literally see the dice being rolled.</p>
 <p>- <strong>Search for "LLM sampling parameters interactive demo"</strong> — several blog posts have visual explainers that let you see how temperature reshapes the probability distribution.</p>
 <p>- <strong>Read the Hugging Face blog post "Decoding Strategies in Large Language Models"</strong> — it covers everything from greedy search to min-P with code examples.</p>
 <p>- <strong>For open-source users:</strong> Experiment with llama.cpp's sampler chain — it lets you compose multiple sampling strategies in sequence and see how each one transforms the distribution.</p><p>---</p><p><strong>Next time you set temperature to 0.7 and top-P to 0.95, you'll know exactly what's happening: the model calculates probabilities for 50,000 tokens, temperature sharpens the distribution slightly, top-P keeps only the tokens that matter, and one gets picked. Every word you read from an LLM went through this gauntlet. The same prompt, the same model, but different dice rolls — and that's why you get a different coffee mug description every time.</strong></p>
     </div>
-  </article>
+    <footer class="footer">
+      <p>&copy; 2026 Shibin. All rights reserved.</p>
+    </footer>
+  </div>
 </body>
 </html>

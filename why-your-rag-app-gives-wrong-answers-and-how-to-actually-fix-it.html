@@ -5,52 +5,275 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="You built a RAG pipeline, connected a vector DB, and it still hallucinates. What gives? A deep dive into the failure modes hiding in your retrieval, chunking, and generation — and how to debug each one.">
   <meta name="author" content="Shibin">
+  <meta property="og:title" content="Why Your RAG App Gives Wrong Answers — And How to Actually Fix It">
+  <meta property="og:description" content="You built a RAG pipeline, connected a vector DB, and it still hallucinates. What gives? A deep dive into the failure modes hiding in your retrieval, chunking, and generation — and how to debug each one.">
+  <meta property="og:type" content="article">
   <title>Why Your RAG App Gives Wrong Answers — And How to Actually Fix It</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f8f9fa;
+      --bg-code: #f6f8fa;
+      --text-primary: #1a202c;
+      --text-secondary: #4a5568;
+      --text-tertiary: #718096;
+      --border-color: #e2e8f0;
+      --accent-color: #3b82f6;
+      --accent-hover: #2563eb;
+      --tag-bg: #e0e7ff;
+      --tag-text: #3730a3;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+      --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-primary: #1a202c;
+        --bg-secondary: #2d3748;
+        --bg-code: #2d3748;
+        --text-primary: #f7fafc;
+        --text-secondary: #e2e8f0;
+        --text-tertiary: #a0aec0;
+        --border-color: #4a5568;
+        --accent-color: #60a5fa;
+        --accent-hover: #3b82f6;
+        --tag-bg: #3730a3;
+        --tag-text: #e0e7ff;
+      }
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      line-height: 1.6;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.7;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .container {
       max-width: 800px;
       margin: 0 auto;
-      padding: 20px;
-      color: #333;
+      padding: 2rem 1.5rem;
     }
-    h1 { color: #2c3e50; margin-bottom: 10px; }
-    .meta { color: #7f8c8d; margin-bottom: 20px; font-size: 14px; }
-    .tags { margin: 20px 0; }
+
+    .header {
+      margin-bottom: 3rem;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      color: var(--accent-color);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 2rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: var(--accent-hover);
+    }
+
+    .back-link::before {
+      content: "←";
+      margin-right: 0.5rem;
+    }
+
+    article h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      line-height: 1.2;
+      color: var(--text-primary);
+      margin-bottom: 1rem;
+    }
+
+    @media (max-width: 640px) {
+      article h1 {
+        font-size: 2rem;
+      }
+    }
+
+    .meta {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--text-tertiary);
+      font-size: 0.875rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .meta-divider {
+      color: var(--border-color);
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+
     .tag {
       display: inline-block;
-      background: #ecf0f1;
-      padding: 5px 10px;
-      margin-right: 5px;
-      border-radius: 3px;
-      font-size: 12px;
+      background: var(--tag-bg);
+      color: var(--tag-text);
+      padding: 0.375rem 0.875rem;
+      border-radius: 0.375rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      transition: transform 0.2s;
     }
-    img { max-width: 100%; height: auto; }
-    code {
-      background: #f4f4f4;
-      padding: 2px 6px;
-      border-radius: 3px;
-      font-family: 'Courier New', monospace;
+
+    .tag:hover {
+      transform: translateY(-1px);
+    }
+
+    .content {
+      font-size: 1.0625rem;
+      color: var(--text-secondary);
+    }
+
+    .content h2 {
+      font-size: 1.875rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 2.5rem 0 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    .content h3 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 2rem 0 1rem;
+    }
+
+    .content h4 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 1.5rem 0 0.75rem;
+    }
+
+    .content p {
+      margin: 1rem 0;
+      line-height: 1.8;
+    }
+
+    .content strong {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .content a {
+      color: var(--accent-color);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.2s;
+    }
+
+    .content a:hover {
+      border-bottom-color: var(--accent-color);
+    }
+
+    .content code {
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      font-size: 0.875em;
+      background: var(--bg-code);
+      padding: 0.2em 0.4em;
+      border-radius: 0.25rem;
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    .content pre {
+      background: var(--bg-code);
+      padding: 1.25rem;
+      border-radius: 0.5rem;
+      overflow-x: auto;
+      margin: 1.5rem 0;
+      border: 1px solid var(--border-color);
+    }
+
+    .content pre code {
+      background: none;
+      padding: 0;
+      border: none;
+      font-size: 0.875rem;
+      line-height: 1.6;
+    }
+
+    .content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 0.5rem;
+      margin: 2rem 0;
+      box-shadow: var(--shadow-md);
+    }
+
+    .content ul, .content ol {
+      margin: 1rem 0 1rem 1.5rem;
+    }
+
+    .content li {
+      margin: 0.5rem 0;
+    }
+
+    .content blockquote {
+      border-left: 4px solid var(--accent-color);
+      padding-left: 1rem;
+      margin: 1.5rem 0;
+      color: var(--text-tertiary);
+      font-style: italic;
+    }
+
+    .footer {
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border-color);
+      text-align: center;
+      color: var(--text-tertiary);
+      font-size: 0.875rem;
     }
   </style>
 </head>
 <body>
-  <article>
-    <h1>Why Your RAG App Gives Wrong Answers — And How to Actually Fix It</h1>
-    <div class="meta">
-      <span>By Shibin</span> •
-      <span>2026-02-05</span>
+  <div class="container">
+    <a href="index.html" class="back-link">All Posts</a>
+    <div class="header">
+      <article>
+        <h1>Why Your RAG App Gives Wrong Answers — And How to Actually Fix It</h1>
+        <div class="meta">
+          <span>Shibin</span>
+          <span class="meta-divider">•</span>
+          <time datetime="2026-02-05">February 4, 2026</time>
+        </div>
+        <div class="tags">
+          <span class="tag">Learning</span><span class="tag">AI</span><span class="tag">Software Engineering</span>
+        </div>
+      </article>
     </div>
-    <div class="tags">
-        <span class="tag">Learning</span><span class="tag">AI</span><span class="tag">Software Engineering</span>
-      </div>
     <div class="content">
-      <p><h1>Why Your RAG App Gives Wrong Answers — And How to Actually Fix It</h1></p><p><strong>RAG was supposed to fix hallucinations. So why is your chatbot still making things up?</strong></p><p>---</p><p><h2>The Chatbot That Confidently Lied</h2></p><p>You've done everything right. You loaded your company's documentation into a vector database, wired up an embedding model, plugged in an LLM, and deployed a slick internal chatbot. Someone asks: "What's our refund policy for enterprise clients?"</p><p>The bot responds instantly. Clear, well-formatted, confident. There's just one small problem — the answer is completely wrong. It's mixing up the enterprise policy with the starter plan policy. Or worse, it's inventing a policy that doesn't exist anywhere in your documents.</p><p>You check the retrieval logs. The right document <em>was</em> retrieved. It was sitting right there in the context window. The LLM just... ignored it. Or misread it. Or decided its own training data was more trustworthy.</p><p>This is the moment every developer building with RAG eventually hits. The promise was simple — give the LLM your data, and it'll answer from your data. The reality? RAG systems fail in ways that are subtle, hard to debug, and surprisingly predictable once you know where to look.</p><p><h2>Why Should You Care?</h2></p><p>If you're building anything with LLMs — a customer support bot, a documentation assistant, an internal knowledge tool — RAG is probably part of your stack. It's become the default architecture for grounding LLMs in custom data. And if you're preparing for interviews at AI-focused companies or building side projects to showcase, understanding <em>why</em> RAG breaks is far more impressive than just knowing how to set it up.</p><p>The gap between a demo RAG app and a production-ready one is enormous. And that gap is almost entirely about understanding failure modes.</p><p><h2>Let Me Back Up — How RAG Actually Works</h2></p><p>Before we dissect what goes wrong, let's make sure we're on the same page about what's happening under the hood.</p><p>RAG isn't one thing — it's a pipeline. A chain of steps where each step can introduce errors that compound downstream. Think of it like a relay race. If the first runner stumbles, it doesn't matter how fast the others are.</p><p>Here's the simplified flow:</p><p>![Mermaid Diagram](https://raw.githubusercontent.com/thousandmiles-ai/blogs/main/blog-images/why-your-rag-app-gives-wrong-answers-and-how-to-actually-fix-it/mermaid-95d5bf36d0fd2181ebf25a5948240698.svg)</p><p><em>The RAG pipeline: each step is a potential failure point.</em></p><p>The user asks a question. That question gets converted into an embedding (a numerical representation of meaning). The system searches a vector database for chunks of text with similar embeddings. Those chunks get stuffed into a prompt alongside the user's question. The LLM reads everything and generates an answer.</p><p>Sounds straightforward. But each of those arrows? That's where things go sideways.</p><p><h2>Okay, But How Does It Actually Break? — The Five Failure Layers</h2></p><p>Let's walk through the pipeline, layer by layer, and see where the wrong answers sneak in.</p><p><h3>Layer 1: Your Data Is the Problem (and You Don't Know It)</h3></p><p>This one's embarrassing because it's the most basic. A RAG system can only retrieve what's in the knowledge base. If the answer to a user's question simply doesn't exist in your documents, the LLM has two choices: say "I don't know" (which most LLMs are terrible at) or confidently make something up.</p><p>But it's not just missing data. It's also <em>bad</em> data — outdated docs, duplicate versions, conflicting information across files. Imagine having two versions of a pricing document in your vector database: one from 2024 and one from 2025. The retriever doesn't know which is current. It just finds the one that's semantically closest to the query. If the outdated version happens to be a closer match, congratulations — your bot is now quoting last year's prices.</p><p><strong>The fix:</strong> Treat your knowledge base like a production database, not a file dump. Version your documents. Add metadata (dates, categories, document types). Audit regularly. If you wouldn't trust a human intern to give answers from messy, outdated files, don't trust your RAG system to either.</p><p><h3>Layer 2: Chunking Is Silently Destroying Your Context</h3></p><p>Okay, stay with me here — this is where it gets spicy.</p><p>Before your documents go into the vector database, they get split into smaller pieces called "chunks." This is necessary because embedding models have token limits, and you want precise retrieval rather than stuffing entire PDFs into a search.</p><p>The problem? How you chunk changes <em>everything</em>. And most developers just use the default settings without thinking about it.</p><p>Say you're processing a legal document. There's a clause that reads: <em>"The company is liable for damages... except in cases of force majeure."</em> Your chunker, set to split every 512 tokens, cuts right between "damages" and "except." Now you have two chunks. One says the company is liable, period. The other has the exception, floating with no context.</p><p>Guess which chunk gets retrieved when someone asks about liability? The first one. Without the exception. This isn't a hypothetical — this pattern plays out constantly in production systems.</p><p>And it's not just text. Tables get split in half. Lists lose their headers. A chunk might say "this approach" without any indication of what "this" refers to, because the context was in the previous chunk that didn't get retrieved.</p><p><strong>The fix:</strong> Don't use fixed-size chunking in production. Use recursive or semantic chunking that respects natural boundaries — paragraphs, sections, headings. Add overlap between chunks (10-20%) so boundary information isn't lost. For structured content like tables and lists, extract them as separate units with their context attached.</p><p><h3>Layer 3: Retrieval Found Something — Just Not the Right Thing</h3></p><p>Here's a scenario that plays out in teams all the time: the retriever returns five chunks, and all five are <em>related</em> to the question. They're about the right topic, they use similar vocabulary, they score high on cosine similarity. But none of them actually contain the answer.</p><p>This is the difference between "semantically similar" and "actually relevant." Embeddings capture meaning in broad strokes, but they're not great at distinguishing nuance. If a user asks "What's the maximum file upload size?", the retriever might return chunks about file uploads in general — how uploads work, supported file types, upload UI guidelines — without finding the one sentence buried in a config doc that says "max size: 25MB."</p><p>There's another nasty variant: the correct chunk <em>is</em> retrieved, but it's ranked 4th or 5th out of 5. And because of something researchers call the "lost in the middle" problem, LLMs tend to pay more attention to information at the beginning and end of the context window, and gloss over what's in the middle. Your answer was right there. The model just didn't look at it carefully enough.</p><p>![Mermaid Diagram](https://raw.githubusercontent.com/thousandmiles-ai/blogs/main/blog-images/why-your-rag-app-gives-wrong-answers-and-how-to-actually-fix-it/mermaid-a25cdc15a2a3c5c21e1e0d26e6e28412.svg)</p><p><em>The right chunk was retrieved — but buried in noise, the LLM missed it.</em></p><p><strong>The fix:</strong> Use hybrid search — combine vector similarity with keyword matching (BM25). Add a re-ranker as a second stage that actually scores chunks for relevance to the specific question, not just topic similarity. And keep your top-K small. Retrieving 3-5 highly relevant chunks beats 20 loosely related ones every time.</p><p><h3>Layer 4: The LLM Ignores Your Context (Yes, Really)</h3></p><p>If you're thinking <em>"wait, isn't that the whole point of RAG? The LLM is supposed to use the retrieved context?"</em> — fair question. Here's the uncomfortable truth.</p><p>Even when you hand the LLM a perfect, relevant chunk on a silver platter, it can still ignore it. LLMs have what's called "parametric knowledge" — things they learned during training. Sometimes, the model's internal knowledge conflicts with what's in the retrieved context, and the model goes with its gut instead of the evidence.</p><p>Research from ICLR (a major AI conference) found that this happens because of how attention mechanisms work internally. The model has "knowledge neurons" that encode its training data, and "copying heads" that should pull from the context. When the knowledge neurons fire strongly — say, on a topic the model saw millions of times during training — they can override the copying mechanism.</p><p>The result? The LLM generates an answer that <em>sounds</em> like it came from your documents but actually came from its training data. This is especially dangerous because the answer might even be partially correct — just wrong in the specific ways your data differs from general knowledge.</p><p><strong>The fix:</strong> Use explicit prompting: "Answer ONLY based on the provided context. If the answer isn't in the context, say 'I don't have enough information.'" It sounds basic, but it significantly reduces context-ignoring behavior. For critical applications, implement faithfulness checking — a second pass that verifies each claim in the response maps back to a specific passage in the retrieved context.</p><p><h3>Layer 5: The Multi-Hop Problem — When Answers Live in Multiple Places</h3></p><p>Here's one that almost nobody talks about in tutorials. A user asks: "How does our enterprise pricing compare to what we offered in Q3 last year?" Answering this requires stitching together information from at least two documents — the current pricing page and the Q3 pricing archive.</p><p>Standard RAG retrieves chunks independently. It might find the current pricing. It might find the Q3 data. But connecting the dots between them? That requires reasoning across multiple retrieved sources, and most basic RAG setups struggle here. The LLM gets a pile of chunks and has to figure out on its own that chunk 2 is the "before" and chunk 4 is the "after."</p><p><strong>The fix:</strong> For queries that need cross-document reasoning, consider query decomposition — break the original question into sub-questions ("What's the current enterprise price?" and "What was the Q3 enterprise price?"), retrieve for each separately, then combine. This is where agentic RAG patterns start to shine.</p><p><h2>Mistakes That Bite — The Mental Models That Lead You Astray</h2></p><p><strong>"More chunks = better answers."</strong> Nope. Retrieving too many chunks dilutes the signal. The LLM has to wade through noise, and its attention gets spread thin. You end up with generic, hedged answers instead of precise ones. Be surgical with your retrieval.</p><p><strong>"RAG eliminates hallucinations."</strong> This is the big one. RAG <em>reduces</em> hallucinations for knowledge-intensive, factual questions. But it doesn't eliminate them. The LLM can still hallucinate even with perfect context — it might fuse information incorrectly across chunks, add qualifiers that weren't there, or subtly reshape facts to fit its language patterns. Think of RAG as wearing a seatbelt, not driving an indestructible car.</p><p><strong>"If retrieval is working, generation will be fine."</strong> Retrieval and generation are two different problems. You can have perfect retrieval and still get wrong answers if the prompt is poorly structured, the context window is overloaded, or the model isn't well-suited for following grounded instructions. Debug them separately. Measure them separately.</p><p><h2>Now Go Break Something — Where to Go from Here</h2></p><p>If you want to actually <em>feel</em> these failure modes instead of just reading about them, here's a weekend project: build a simple RAG app using LangChain or LlamaIndex over a set of documents you know well (your college notes, a project's docs, anything). Then deliberately try to break it. Ask questions that require cross-document reasoning. Ask about things not in the docs. Ask ambiguous questions. Log the retrieved chunks alongside the generated answers and compare.</p><p>Here's what to explore next:</p><p>- <strong>RAGAS</strong> — an open-source framework for evaluating RAG pipelines. It gives you metrics like faithfulness, answer relevancy, and context precision. Check it out on GitHub.</p>
+      <h1>Why Your RAG App Gives Wrong Answers — And How to Actually Fix It</h1></p><p><strong>RAG was supposed to fix hallucinations. So why is your chatbot still making things up?</strong></p><p>---</p><p><h2>The Chatbot That Confidently Lied</h2></p><p>You've done everything right. You loaded your company's documentation into a vector database, wired up an embedding model, plugged in an LLM, and deployed a slick internal chatbot. Someone asks: "What's our refund policy for enterprise clients?"</p><p>The bot responds instantly. Clear, well-formatted, confident. There's just one small problem — the answer is completely wrong. It's mixing up the enterprise policy with the starter plan policy. Or worse, it's inventing a policy that doesn't exist anywhere in your documents.</p><p>You check the retrieval logs. The right document <em>was</em> retrieved. It was sitting right there in the context window. The LLM just... ignored it. Or misread it. Or decided its own training data was more trustworthy.</p><p>This is the moment every developer building with RAG eventually hits. The promise was simple — give the LLM your data, and it'll answer from your data. The reality? RAG systems fail in ways that are subtle, hard to debug, and surprisingly predictable once you know where to look.</p><p><h2>Why Should You Care?</h2></p><p>If you're building anything with LLMs — a customer support bot, a documentation assistant, an internal knowledge tool — RAG is probably part of your stack. It's become the default architecture for grounding LLMs in custom data. And if you're preparing for interviews at AI-focused companies or building side projects to showcase, understanding <em>why</em> RAG breaks is far more impressive than just knowing how to set it up.</p><p>The gap between a demo RAG app and a production-ready one is enormous. And that gap is almost entirely about understanding failure modes.</p><p><h2>Let Me Back Up — How RAG Actually Works</h2></p><p>Before we dissect what goes wrong, let's make sure we're on the same page about what's happening under the hood.</p><p>RAG isn't one thing — it's a pipeline. A chain of steps where each step can introduce errors that compound downstream. Think of it like a relay race. If the first runner stumbles, it doesn't matter how fast the others are.</p><p>Here's the simplified flow:</p><p>!<a href="https://raw.githubusercontent.com/thousandmiles-ai/blogs/main/blog-images/why-your-rag-app-gives-wrong-answers-and-how-to-actually-fix-it/mermaid-95d5bf36d0fd2181ebf25a5948240698.svg" target="_blank" rel="noopener">Mermaid Diagram</a></p><p><em>The RAG pipeline: each step is a potential failure point.</em></p><p>The user asks a question. That question gets converted into an embedding (a numerical representation of meaning). The system searches a vector database for chunks of text with similar embeddings. Those chunks get stuffed into a prompt alongside the user's question. The LLM reads everything and generates an answer.</p><p>Sounds straightforward. But each of those arrows? That's where things go sideways.</p><p><h2>Okay, But How Does It Actually Break? — The Five Failure Layers</h2></p><p>Let's walk through the pipeline, layer by layer, and see where the wrong answers sneak in.</p><p><h3>Layer 1: Your Data Is the Problem (and You Don't Know It)</h3></p><p>This one's embarrassing because it's the most basic. A RAG system can only retrieve what's in the knowledge base. If the answer to a user's question simply doesn't exist in your documents, the LLM has two choices: say "I don't know" (which most LLMs are terrible at) or confidently make something up.</p><p>But it's not just missing data. It's also <em>bad</em> data — outdated docs, duplicate versions, conflicting information across files. Imagine having two versions of a pricing document in your vector database: one from 2024 and one from 2025. The retriever doesn't know which is current. It just finds the one that's semantically closest to the query. If the outdated version happens to be a closer match, congratulations — your bot is now quoting last year's prices.</p><p><strong>The fix:</strong> Treat your knowledge base like a production database, not a file dump. Version your documents. Add metadata (dates, categories, document types). Audit regularly. If you wouldn't trust a human intern to give answers from messy, outdated files, don't trust your RAG system to either.</p><p><h3>Layer 2: Chunking Is Silently Destroying Your Context</h3></p><p>Okay, stay with me here — this is where it gets spicy.</p><p>Before your documents go into the vector database, they get split into smaller pieces called "chunks." This is necessary because embedding models have token limits, and you want precise retrieval rather than stuffing entire PDFs into a search.</p><p>The problem? How you chunk changes <em>everything</em>. And most developers just use the default settings without thinking about it.</p><p>Say you're processing a legal document. There's a clause that reads: <em>"The company is liable for damages... except in cases of force majeure."</em> Your chunker, set to split every 512 tokens, cuts right between "damages" and "except." Now you have two chunks. One says the company is liable, period. The other has the exception, floating with no context.</p><p>Guess which chunk gets retrieved when someone asks about liability? The first one. Without the exception. This isn't a hypothetical — this pattern plays out constantly in production systems.</p><p>And it's not just text. Tables get split in half. Lists lose their headers. A chunk might say "this approach" without any indication of what "this" refers to, because the context was in the previous chunk that didn't get retrieved.</p><p><strong>The fix:</strong> Don't use fixed-size chunking in production. Use recursive or semantic chunking that respects natural boundaries — paragraphs, sections, headings. Add overlap between chunks (10-20%) so boundary information isn't lost. For structured content like tables and lists, extract them as separate units with their context attached.</p><p><h3>Layer 3: Retrieval Found Something — Just Not the Right Thing</h3></p><p>Here's a scenario that plays out in teams all the time: the retriever returns five chunks, and all five are <em>related</em> to the question. They're about the right topic, they use similar vocabulary, they score high on cosine similarity. But none of them actually contain the answer.</p><p>This is the difference between "semantically similar" and "actually relevant." Embeddings capture meaning in broad strokes, but they're not great at distinguishing nuance. If a user asks "What's the maximum file upload size?", the retriever might return chunks about file uploads in general — how uploads work, supported file types, upload UI guidelines — without finding the one sentence buried in a config doc that says "max size: 25MB."</p><p>There's another nasty variant: the correct chunk <em>is</em> retrieved, but it's ranked 4th or 5th out of 5. And because of something researchers call the "lost in the middle" problem, LLMs tend to pay more attention to information at the beginning and end of the context window, and gloss over what's in the middle. Your answer was right there. The model just didn't look at it carefully enough.</p><p>!<a href="https://raw.githubusercontent.com/thousandmiles-ai/blogs/main/blog-images/why-your-rag-app-gives-wrong-answers-and-how-to-actually-fix-it/mermaid-a25cdc15a2a3c5c21e1e0d26e6e28412.svg" target="_blank" rel="noopener">Mermaid Diagram</a></p><p><em>The right chunk was retrieved — but buried in noise, the LLM missed it.</em></p><p><strong>The fix:</strong> Use hybrid search — combine vector similarity with keyword matching (BM25). Add a re-ranker as a second stage that actually scores chunks for relevance to the specific question, not just topic similarity. And keep your top-K small. Retrieving 3-5 highly relevant chunks beats 20 loosely related ones every time.</p><p><h3>Layer 4: The LLM Ignores Your Context (Yes, Really)</h3></p><p>If you're thinking <em>"wait, isn't that the whole point of RAG? The LLM is supposed to use the retrieved context?"</em> — fair question. Here's the uncomfortable truth.</p><p>Even when you hand the LLM a perfect, relevant chunk on a silver platter, it can still ignore it. LLMs have what's called "parametric knowledge" — things they learned during training. Sometimes, the model's internal knowledge conflicts with what's in the retrieved context, and the model goes with its gut instead of the evidence.</p><p>Research from ICLR (a major AI conference) found that this happens because of how attention mechanisms work internally. The model has "knowledge neurons" that encode its training data, and "copying heads" that should pull from the context. When the knowledge neurons fire strongly — say, on a topic the model saw millions of times during training — they can override the copying mechanism.</p><p>The result? The LLM generates an answer that <em>sounds</em> like it came from your documents but actually came from its training data. This is especially dangerous because the answer might even be partially correct — just wrong in the specific ways your data differs from general knowledge.</p><p><strong>The fix:</strong> Use explicit prompting: "Answer ONLY based on the provided context. If the answer isn't in the context, say 'I don't have enough information.'" It sounds basic, but it significantly reduces context-ignoring behavior. For critical applications, implement faithfulness checking — a second pass that verifies each claim in the response maps back to a specific passage in the retrieved context.</p><p><h3>Layer 5: The Multi-Hop Problem — When Answers Live in Multiple Places</h3></p><p>Here's one that almost nobody talks about in tutorials. A user asks: "How does our enterprise pricing compare to what we offered in Q3 last year?" Answering this requires stitching together information from at least two documents — the current pricing page and the Q3 pricing archive.</p><p>Standard RAG retrieves chunks independently. It might find the current pricing. It might find the Q3 data. But connecting the dots between them? That requires reasoning across multiple retrieved sources, and most basic RAG setups struggle here. The LLM gets a pile of chunks and has to figure out on its own that chunk 2 is the "before" and chunk 4 is the "after."</p><p><strong>The fix:</strong> For queries that need cross-document reasoning, consider query decomposition — break the original question into sub-questions ("What's the current enterprise price?" and "What was the Q3 enterprise price?"), retrieve for each separately, then combine. This is where agentic RAG patterns start to shine.</p><p><h2>Mistakes That Bite — The Mental Models That Lead You Astray</h2></p><p><strong>"More chunks = better answers."</strong> Nope. Retrieving too many chunks dilutes the signal. The LLM has to wade through noise, and its attention gets spread thin. You end up with generic, hedged answers instead of precise ones. Be surgical with your retrieval.</p><p><strong>"RAG eliminates hallucinations."</strong> This is the big one. RAG <em>reduces</em> hallucinations for knowledge-intensive, factual questions. But it doesn't eliminate them. The LLM can still hallucinate even with perfect context — it might fuse information incorrectly across chunks, add qualifiers that weren't there, or subtly reshape facts to fit its language patterns. Think of RAG as wearing a seatbelt, not driving an indestructible car.</p><p><strong>"If retrieval is working, generation will be fine."</strong> Retrieval and generation are two different problems. You can have perfect retrieval and still get wrong answers if the prompt is poorly structured, the context window is overloaded, or the model isn't well-suited for following grounded instructions. Debug them separately. Measure them separately.</p><p><h2>Now Go Break Something — Where to Go from Here</h2></p><p>If you want to actually <em>feel</em> these failure modes instead of just reading about them, here's a weekend project: build a simple RAG app using LangChain or LlamaIndex over a set of documents you know well (your college notes, a project's docs, anything). Then deliberately try to break it. Ask questions that require cross-document reasoning. Ask about things not in the docs. Ask ambiguous questions. Log the retrieved chunks alongside the generated answers and compare.</p><p>Here's what to explore next:</p><p>- <strong>RAGAS</strong> — an open-source framework for evaluating RAG pipelines. It gives you metrics like faithfulness, answer relevancy, and context precision. Check it out on GitHub.
 <p>- <strong>LangSmith or Phoenix by Arize</strong> — observability tools that let you trace every step of your RAG pipeline. You can literally see which chunks were retrieved and how the LLM used them.</p>
 <p>- <strong>Anthropic's contextual retrieval approach</strong> — a technique where each chunk gets prepended with document-level context before embedding. It's a smart solution to the "chunk without context" problem.</p>
 <p>- Search for "advanced RAG patterns" — techniques like query rewriting, hypothetical document embeddings (HyDE), and self-RAG are pushing the boundaries of what's possible.</p><p>---</p><p><strong>Remember that chatbot confidently quoting the wrong refund policy? The retrieved document was right there in the context window. The problem wasn't retrieval — it was that the chunk had been split mid-paragraph, the correct version was ranked third out of five, and the LLM's training data had a stronger opinion than the evidence in front of it. Once you learn to see the pipeline as a chain of handoffs — each one a potential failure — debugging stops being a guessing game and starts being engineering. And that's when RAG actually starts to work.</strong></p>
     </div>
-  </article>
+    <footer class="footer">
+      <p>&copy; 2026 Shibin. All rights reserved.</p>
+    </footer>
+  </div>
 </body>
 </html>

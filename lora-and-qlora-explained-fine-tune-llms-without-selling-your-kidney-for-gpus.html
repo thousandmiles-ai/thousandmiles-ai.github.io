@@ -3,48 +3,268 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Full fine-tuning a 7B model needs 4x A100 GPUs. You have a free Colab notebook with 15GB of RAM. Game over? Not even close. LoRA and QLoRA let you fine-tune billion-parameter models on hardware you already have. Here's how they actually work.">
+  <meta name="description" content="Full fine-tuning a 7B model needs 4x A100 GPUs. You have a free Colab notebook with 15GB of RAM. Game over? Not even close. LoRA and QLoRA let you fine-tune billion-parameter models on hardware you already have. Here&#039;s how they actually work.">
   <meta name="author" content="thousandmiles-ai-admin">
+  <meta property="og:title" content="LoRA and QLoRA Explained — Fine-Tune LLMs Without Selling Your Kidney for GPUs">
+  <meta property="og:description" content="Full fine-tuning a 7B model needs 4x A100 GPUs. You have a free Colab notebook with 15GB of RAM. Game over? Not even close. LoRA and QLoRA let you fine-tune billion-parameter models on hardware you already have. Here&#039;s how they actually work.">
+  <meta property="og:type" content="article">
   <title>LoRA and QLoRA Explained — Fine-Tune LLMs Without Selling Your Kidney for GPUs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f8f9fa;
+      --bg-code: #f6f8fa;
+      --text-primary: #1a202c;
+      --text-secondary: #4a5568;
+      --text-tertiary: #718096;
+      --border-color: #e2e8f0;
+      --accent-color: #3b82f6;
+      --accent-hover: #2563eb;
+      --tag-bg: #e0e7ff;
+      --tag-text: #3730a3;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+      --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-primary: #1a202c;
+        --bg-secondary: #2d3748;
+        --bg-code: #2d3748;
+        --text-primary: #f7fafc;
+        --text-secondary: #e2e8f0;
+        --text-tertiary: #a0aec0;
+        --border-color: #4a5568;
+        --accent-color: #60a5fa;
+        --accent-hover: #3b82f6;
+        --tag-bg: #3730a3;
+        --tag-text: #e0e7ff;
+      }
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      line-height: 1.6;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.7;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .container {
       max-width: 800px;
       margin: 0 auto;
-      padding: 20px;
-      color: #333;
+      padding: 2rem 1.5rem;
     }
-    h1 { color: #2c3e50; margin-bottom: 10px; }
-    .meta { color: #7f8c8d; margin-bottom: 20px; font-size: 14px; }
-    .tags { margin: 20px 0; }
+
+    .header {
+      margin-bottom: 3rem;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      color: var(--accent-color);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 2rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: var(--accent-hover);
+    }
+
+    .back-link::before {
+      content: "←";
+      margin-right: 0.5rem;
+    }
+
+    article h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      line-height: 1.2;
+      color: var(--text-primary);
+      margin-bottom: 1rem;
+    }
+
+    @media (max-width: 640px) {
+      article h1 {
+        font-size: 2rem;
+      }
+    }
+
+    .meta {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--text-tertiary);
+      font-size: 0.875rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .meta-divider {
+      color: var(--border-color);
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+
     .tag {
       display: inline-block;
-      background: #ecf0f1;
-      padding: 5px 10px;
-      margin-right: 5px;
-      border-radius: 3px;
-      font-size: 12px;
+      background: var(--tag-bg);
+      color: var(--tag-text);
+      padding: 0.375rem 0.875rem;
+      border-radius: 0.375rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      transition: transform 0.2s;
     }
-    img { max-width: 100%; height: auto; }
-    code {
-      background: #f4f4f4;
-      padding: 2px 6px;
-      border-radius: 3px;
-      font-family: 'Courier New', monospace;
+
+    .tag:hover {
+      transform: translateY(-1px);
+    }
+
+    .content {
+      font-size: 1.0625rem;
+      color: var(--text-secondary);
+    }
+
+    .content h2 {
+      font-size: 1.875rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 2.5rem 0 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    .content h3 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 2rem 0 1rem;
+    }
+
+    .content h4 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 1.5rem 0 0.75rem;
+    }
+
+    .content p {
+      margin: 1rem 0;
+      line-height: 1.8;
+    }
+
+    .content strong {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .content a {
+      color: var(--accent-color);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.2s;
+    }
+
+    .content a:hover {
+      border-bottom-color: var(--accent-color);
+    }
+
+    .content code {
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      font-size: 0.875em;
+      background: var(--bg-code);
+      padding: 0.2em 0.4em;
+      border-radius: 0.25rem;
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    .content pre {
+      background: var(--bg-code);
+      padding: 1.25rem;
+      border-radius: 0.5rem;
+      overflow-x: auto;
+      margin: 1.5rem 0;
+      border: 1px solid var(--border-color);
+    }
+
+    .content pre code {
+      background: none;
+      padding: 0;
+      border: none;
+      font-size: 0.875rem;
+      line-height: 1.6;
+    }
+
+    .content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 0.5rem;
+      margin: 2rem 0;
+      box-shadow: var(--shadow-md);
+    }
+
+    .content ul, .content ol {
+      margin: 1rem 0 1rem 1.5rem;
+    }
+
+    .content li {
+      margin: 0.5rem 0;
+    }
+
+    .content blockquote {
+      border-left: 4px solid var(--accent-color);
+      padding-left: 1rem;
+      margin: 1.5rem 0;
+      color: var(--text-tertiary);
+      font-style: italic;
+    }
+
+    .footer {
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border-color);
+      text-align: center;
+      color: var(--text-tertiary);
+      font-size: 0.875rem;
     }
   </style>
 </head>
 <body>
-  <article>
-    <h1>LoRA and QLoRA Explained — Fine-Tune LLMs Without Selling Your Kidney for GPUs</h1>
-    <div class="meta">
-      <span>By thousandmiles-ai-admin</span> •
-      <span>2026-02-17</span>
+  <div class="container">
+    <a href="index.html" class="back-link">All Posts</a>
+    <div class="header">
+      <article>
+        <h1>LoRA and QLoRA Explained — Fine-Tune LLMs Without Selling Your Kidney for GPUs</h1>
+        <div class="meta">
+          <span>thousandmiles-ai-admin</span>
+          <span class="meta-divider">•</span>
+          <time datetime="2026-02-17">February 16, 2026</time>
+        </div>
+        <div class="tags">
+          <span class="tag">Learning</span><span class="tag">AI</span>
+        </div>
+      </article>
     </div>
-    <div class="tags">
-        <span class="tag">Learning</span><span class="tag">AI</span>
-      </div>
     <div class="content">
       <p>import Mermaid from "@/components/ui/mermaid"</p><p><h2>The Problem We All Face</h2></p><p>Imagine this: You just found the perfect dataset to fine-tune an LLM. Something domain-specific. Something that would make your startup, research project, or college assignment actually work. You Google "how to fine-tune Llama 2 7B" with excitement.</p><p>Five minutes later, you're staring at this:</p><p>> "You'll need approximately 100-120 GB of VRAM. An A100 GPU costs $2-3 per hour. Full fine-tuning takes 20 hours minimum."</p><p>You check your resources. Free Google Colab. 15GB RAM. T4 GPU.</p><p>Your dreams are crushed. Or are they?</p><p>Enter <strong>LoRA</strong> and <strong>QLoRA</strong> — the techniques that say "nope, not today" to expensive GPU clusters and let you fine-tune GPT-scale models on hardware you already have.</p><p><h2>Why Fine-Tuning Actually Matters</h2></p><p>Before we dive into the magic, let's talk about why fine-tuning is worth the trouble.</p><p>Pre-trained LLMs are generalists. They're good at everything because they learned from everything. But "good at everything" often means "perfect for nothing." If you want an LLM that:</p><p>- Writes technical documentation in <em>your</em> specific code style</p>
 <p>- Understands domain-specific jargon in medical, legal, or financial contexts</p>
@@ -52,19 +272,17 @@
 <p>- Handles edge cases unique to your problem</p><p>...you need fine-tuning. It's the bridge between "generic chatbot" and "actually useful for my specific task."</p><p>But full fine-tuning? That's expensive. Really expensive.</p><p><h2>What's Wrong with Full Fine-Tuning?</h2></p><p>During full fine-tuning, you update <strong>every single weight</strong> in the model. For a 7-billion parameter model, that's:</p><p>- <strong>7 billion trainable parameters</strong></p>
 <p>- Each parameter needs gradients stored during backpropagation</p>
 <p>- GPU memory = (model size) + (gradients) + (optimizer states) + (batch)</p>
-<p>- Result: ~100-120 GB of VRAM needed</p><p>A single A100 GPU (the workhorse of AI) costs $2-3 per hour on cloud platforms. To fine-tune a 7B model, you'd need 4 of them, or find a different way.</p><p>This is where the magic happens.</p><p><h2>The Insight: Models Are Secretly Low-Rank</h2></p><p>Here's the key insight that changed everything: When you fine-tune a model on a new task, the weight updates don't require the <strong>full dimensionality</strong> of the original weights. Most of the "important" changes can be captured in a <strong>low-rank structure</strong>.</p><p>What does that mean?</p><p>Imagine a weight matrix W that's 4096 × 4096 (typical in transformer layers). That's ~16 million individual parameters. But the researchers behind LoRA discovered something: you don't need to update all 16 million parameters. You can approximate the weight updates using two much smaller matrices.</p><p>Let's visualize this:</p><p>![Mermaid Diagram](https://raw.githubusercontent.com/thousandmiles-ai/blogs/main/blog-images/lora-and-qlora-explained-fine-tune-llms-without-selling-your-kidney-for-gpus/mermaid-f771ef8d2c105d0743c6b741800c5a91.svg)</p><p>Instead of updating 16.7 million parameters, LoRA updates only ~65,000 parameters (the two small matrices). That's <strong>99.6% fewer parameters</strong> to train.</p><p>The magic formula is simple:</p><p>```</p>
-<p>W_new = W_original + ΔW</p>
+<p>- Result: ~100-120 GB of VRAM needed</p><p>A single A100 GPU (the workhorse of AI) costs $2-3 per hour on cloud platforms. To fine-tune a 7B model, you'd need 4 of them, or find a different way.</p><p>This is where the magic happens.</p><p><h2>The Insight: Models Are Secretly Low-Rank</h2></p><p>Here's the key insight that changed everything: When you fine-tune a model on a new task, the weight updates don't require the <strong>full dimensionality</strong> of the original weights. Most of the "important" changes can be captured in a <strong>low-rank structure</strong>.</p><p>What does that mean?</p><p>Imagine a weight matrix W that's 4096 × 4096 (typical in transformer layers). That's ~16 million individual parameters. But the researchers behind LoRA discovered something: you don't need to update all 16 million parameters. You can approximate the weight updates using two much smaller matrices.</p><p>Let's visualize this:</p><p>!<a href="https://raw.githubusercontent.com/thousandmiles-ai/blogs/main/blog-images/lora-and-qlora-explained-fine-tune-llms-without-selling-your-kidney-for-gpus/mermaid-f771ef8d2c105d0743c6b741800c5a91.svg" target="_blank" rel="noopener">Mermaid Diagram</a></p><p>Instead of updating 16.7 million parameters, LoRA updates only ~65,000 parameters (the two small matrices). That's <strong>99.6% fewer parameters</strong> to train.</p><p>The magic formula is simple:</p><p><pre><code class="language-">W_new = W_original + ΔW</p>
 <p>ΔW ≈ A × B  (where A is 4096 × r, B is r × 4)</p>
-<p>```</p><p>Here, `r` is the <strong>rank</strong> — a small hyperparameter you choose (typically 8-64). The lower the rank, the fewer parameters you train.</p><p><h2>How LoRA Actually Works</h2></p><p>Let's break down the LoRA training process step by step.</p><p><h3>Step 1: Freeze the Base Model</h3></p><p>Your pre-trained model stays completely frozen. Its 7 billion parameters don't change. This is huge for memory savings.</p><p><h3>Step 2: Add Tiny Adapter Matrices</h3></p><p>For every weight matrix you want to adapt (typically in the attention layers), you add two small matrices:</p>
+<p></code></pre></p><p>Here, <code>r</code> is the <strong>rank</strong> — a small hyperparameter you choose (typically 8-64). The lower the rank, the fewer parameters you train.</p><p><h2>How LoRA Actually Works</h2></p><p>Let's break down the LoRA training process step by step.</p><p><h3>Step 1: Freeze the Base Model</h3></p><p>Your pre-trained model stays completely frozen. Its 7 billion parameters don't change. This is huge for memory savings.</p><p><h3>Step 2: Add Tiny Adapter Matrices</h3></p><p>For every weight matrix you want to adapt (typically in the attention layers), you add two small matrices:</p>
 <p>- <strong>Matrix A</strong>: initialized randomly and small (e.g., 4096 × 8)</p>
-<p>- <strong>Matrix B</strong>: initialized to zero (this is important!)</p><p><h3>Step 3: Train Only the Adapters</h3></p><p>During fine-tuning, you only update A and B. These are trained using standard backpropagation on your downstream task.</p><p><h3>Step 4: Merge During Inference (Optional)</h3></p><p>After training, you can merge A and B into the original weights: `W_new = W_original + A × B`. This takes a few seconds and gives you a single model file with zero inference overhead.</p><p><strong>Why this works:</strong></p>
+<p>- <strong>Matrix B</strong>: initialized to zero (this is important!)</p><p><h3>Step 3: Train Only the Adapters</h3></p><p>During fine-tuning, you only update A and B. These are trained using standard backpropagation on your downstream task.</p><p><h3>Step 4: Merge During Inference (Optional)</h3></p><p>After training, you can merge A and B into the original weights: <code>W_new = W_original + A × B</code>. This takes a few seconds and gives you a single model file with zero inference overhead.</p><p><strong>Why this works:</strong></p>
 <p>- Pre-trained weights = vast knowledge from billions of examples</p>
 <p>- LoRA adapters = task-specific knowledge from your dataset</p>
-<p>- Combined = best of both worlds</p><p>Here's the training flow:</p><p>![Mermaid Diagram](https://raw.githubusercontent.com/thousandmiles-ai/blogs/main/blog-images/lora-and-qlora-explained-fine-tune-llms-without-selling-your-kidney-for-gpus/mermaid-5dc4a03bb2411c03abc73bf14f579326.svg)</p><p><h2>Enter QLoRA: The Final Boss of Efficiency</h2></p><p>LoRA is already mind-blowingly efficient. But what if you could go further?</p><p>QLoRA combines LoRA with <strong>4-bit quantization</strong> — a technique that compresses the model weights to use only 4 bits per parameter instead of 32 bits (8x compression).</p><p><h3>What is 4-Bit Quantization?</h3></p><p>Instead of storing weights as full 32-bit floating-point numbers, you store them as 4-bit integers. Quantization is lossy (you lose some precision), but the loss is tiny.</p><p>Quantization formula:</p>
-<p>```</p>
-<p>4-bit weight ≈ original 32-bit weight</p>
+<p>- Combined = best of both worlds</p><p>Here's the training flow:</p><p>!<a href="https://raw.githubusercontent.com/thousandmiles-ai/blogs/main/blog-images/lora-and-qlora-explained-fine-tune-llms-without-selling-your-kidney-for-gpus/mermaid-5dc4a03bb2411c03abc73bf14f579326.svg" target="_blank" rel="noopener">Mermaid Diagram</a></p><p><h2>Enter QLoRA: The Final Boss of Efficiency</h2></p><p>LoRA is already mind-blowingly efficient. But what if you could go further?</p><p>QLoRA combines LoRA with <strong>4-bit quantization</strong> — a technique that compresses the model weights to use only 4 bits per parameter instead of 32 bits (8x compression).</p><p><h3>What is 4-Bit Quantization?</h3></p><p>Instead of storing weights as full 32-bit floating-point numbers, you store them as 4-bit integers. Quantization is lossy (you lose some precision), but the loss is tiny.</p><p>Quantization formula:</p>
+<pre><code class="language-">4-bit weight ≈ original 32-bit weight
 <p>Compression: 32 bits → 4 bits = 8x smaller</p>
-<p>```</p><p><h3>QLoRA's Secret Sauce</h3></p><p>QLoRA doesn't just quantize. It uses three clever tricks:</p><p><strong>1. NF4 (Normalfloat) Data Type</strong></p>
+<p></code></pre></p><p><h3>QLoRA's Secret Sauce</h3></p><p>QLoRA doesn't just quantize. It uses three clever tricks:</p><p><strong>1. NF4 (Normalfloat) Data Type</strong></p>
 <p>- A new data type mathematically optimal for normally distributed weights (which transformer weights are)</p>
 <p>- Better precision than standard 4-bit quantization</p>
 <p>- Information-theoretically superior</p><p><strong>2. Double Quantization</strong></p>
@@ -80,9 +298,8 @@
 <p>| 70B | 2000+ GB | 400 GB | 60-80 GB |</p><p>QLoRA lets you fine-tune a 70B model on a <strong>single A100 80GB GPU</strong>. Full fine-tuning would need 4-8 of them.</p><p>Or, more relevant to you: fine-tune 7-13B models on a <strong>free Google Colab T4 GPU</strong> with 15GB RAM.</p><p><h2>Actually Doing It: The Colab Path</h2></p><p>This is where theory meets reality.</p><p><h3>What You'll Need</h3></p><p>1. Google Colab (free tier)</p>
 <p>2. A Hugging Face account (free)</p>
 <p>3. A small dataset (1,000-10,000 examples minimum)</p>
-<p>4. The `transformers`, `peft`, and `bitsandbytes` libraries</p><p><h3>High-Level Steps</h3></p><p><strong>Step 1: Load a Quantized Model</strong></p>
-<p>```python</p>
-<p>from transformers import AutoModelForCausalLM, AutoTokenizer</p>
+<p>4. The <code>transformers</code>, <code>peft</code>, and <code>bitsandbytes</code> libraries</p><p><h3>High-Level Steps</h3></p><p><strong>Step 1: Load a Quantized Model</strong></p>
+<pre><code class="language-python">from transformers import AutoModelForCausalLM, AutoTokenizer
 <p>import torch</p><p>model_name = "mistralai/Mistral-7B-v0.1"</p>
 <p>model = AutoModelForCausalLM.from_pretrained(</p>
 <p>    model_name,</p>
@@ -91,9 +308,8 @@
 <p>    bnb_4bit_quant_type="nf4",</p>
 <p>    bnb_4bit_compute_dtype=torch.bfloat16</p>
 <p>)</p>
-<p>```</p><p><strong>Step 2: Add LoRA Adapters</strong></p>
-<p>```python</p>
-<p>from peft import LoraConfig, get_peft_model</p><p>lora_config = LoraConfig(</p>
+<p></code></pre></p><p><strong>Step 2: Add LoRA Adapters</strong></p>
+<pre><code class="language-python">from peft import LoraConfig, get_peft_model</p><p>lora_config = LoraConfig(
 <p>    r=8,  # rank</p>
 <p>    lora_alpha=16,</p>
 <p>    target_modules=["q_proj", "v_proj"],  # which weights to adapt</p>
@@ -101,9 +317,8 @@
 <p>    bias="none",</p>
 <p>    task_type="CAUSAL_LM"</p>
 <p>)</p><p>model = get_peft_model(model, lora_config)</p>
-<p>```</p><p><strong>Step 3: Train</strong></p>
-<p>```python</p>
-<p>from transformers import Trainer, TrainingArguments</p><p>training_args = TrainingArguments(</p>
+<p></code></pre></p><p><strong>Step 3: Train</strong></p>
+<pre><code class="language-python">from transformers import Trainer, TrainingArguments</p><p>training_args = TrainingArguments(
 <p>    output_dir="./output",</p>
 <p>    num_train_epochs=3,</p>
 <p>    per_device_train_batch_size=4,  # tiny because of RAM</p>
@@ -115,33 +330,35 @@
 <p>    args=training_args,</p>
 <p>    train_dataset=train_dataset</p>
 <p>)</p><p>trainer.train()</p>
-<p>```</p><p>That's it. Seriously. The libraries handle the memory management, quantization, and LoRA logic for you.</p><p><h2>The Practical Gotchas (Learn From My Pain)</h2></p><p><h3>Gotcha 1: Rank Selection is Non-Obvious</h3></p><p>Lower rank = fewer parameters = faster, less memory.</p>
+<p></code></pre></p><p>That's it. Seriously. The libraries handle the memory management, quantization, and LoRA logic for you.</p><p><h2>The Practical Gotchas (Learn From My Pain)</h2></p><p><h3>Gotcha 1: Rank Selection is Non-Obvious</h3></p><p>Lower rank = fewer parameters = faster, less memory.</p>
 <p>Higher rank = more capacity = potentially better quality.</p><p><strong>Wrong approach:</strong> Pick r=8 because it's small.</p><p><strong>Right approach:</strong> Try r=8, 16, 32 and compare. For most 7B models, r=16-32 works well. For very small datasets, r=8 might even be better (less overfitting).</p><p><h3>Gotcha 2: Small Datasets Overfit Easily</h3></p><p>LoRA adapters are <em>tiny</em> — only ~1-5% of parameters. This is great for efficiency but terrible if your dataset has only 100 examples.</p><p><strong>Wrong approach:</strong> "More epochs = better results"</p><p><strong>Right approach:</strong> Start with 1 epoch, monitor validation loss. If validation loss increases while training loss decreases, you're overfitting. Add dropout, reduce rank, or get more data.</p><p><h3>Gotcha 3: Forgetting to Merge</h3></p><p>If you train LoRA adapters and then share the fine-tuned model, you have two options:</p><p>1. <strong>Keep A and B separate</strong> — saves ~1-5 MB, but requires the PEFT library to load</p>
-<p>2. <strong>Merge into base weights</strong> — one large file, but works with standard transformers library</p><p>```python</p>
-<p><h1>Merge adapters into base model</h1></p>
+<p>2. <strong>Merge into base weights</strong> — one large file, but works with standard transformers library</p><p><pre><code class="language-python"># Merge adapters into base model</p>
 <p>merged_model = model.merge_and_unload()</p>
 <p>merged_model.save_pretrained("./final_model")</p>
-<p>```</p><p>Users downstream will appreciate the merged version. Don't forget this step.</p><p><h3>Gotcha 4: Quantization Loss is Real</h3></p><p>QLoRA is amazing, but 4-bit quantization does lose some information. For most tasks, it's negligible (80-90% of full fine-tuning quality). But for tasks requiring high precision (e.g., mathematical reasoning), consider LoRA without quantization if you have the RAM.</p><p><h2>Next Steps: Actually Try This</h2></p><p>1. <strong>Get a dataset</strong> — find one on Hugging Face Hub, or use a simple one like [databricks-dolly-15k](https://huggingface.co/datasets/databricks/databricks-dolly-15k)</p>
-<p>2. <strong>Clone a Colab notebook</strong> — start with [Hugging Face's QLoRA example](https://colab.research.google.com/drive/1PsW-ld7cAL1LblEV_vNb96oKwcS50C5c?usp=sharing)</p>
+<p></code></pre></p><p>Users downstream will appreciate the merged version. Don't forget this step.</p><p><h3>Gotcha 4: Quantization Loss is Real</h3></p><p>QLoRA is amazing, but 4-bit quantization does lose some information. For most tasks, it's negligible (80-90% of full fine-tuning quality). But for tasks requiring high precision (e.g., mathematical reasoning), consider LoRA without quantization if you have the RAM.</p><p><h2>Next Steps: Actually Try This</h2></p><p>1. <strong>Get a dataset</strong> — find one on Hugging Face Hub, or use a simple one like <a href="https://huggingface.co/datasets/databricks/databricks-dolly-15k" target="_blank" rel="noopener">databricks-dolly-15k</a></p>
+<p>2. <strong>Clone a Colab notebook</strong> — start with <a href="https://colab.research.google.com/drive/1PsW-ld7cAL1LblEV_vNb96oKwcS50C5c?usp=sharing" target="_blank" rel="noopener">Hugging Face's QLoRA example</a></p>
 <p>3. <strong>Modify for your task</strong> — change the model, dataset, and LoRA rank</p>
 <p>4. <strong>Train</strong> — hit play and wait</p>
 <p>5. <strong>Test</strong> — load your fine-tuned model and see if it actually works</p><p><h2>The Bigger Picture</h2></p><p>LoRA and QLoRA democratized fine-tuning. Five years ago, only teams with GPU budgets could customize LLMs. Now, any college student with a laptop and Colab access can do it.</p><p>These techniques are part of a broader movement toward <strong>Parameter-Efficient Fine-Tuning (PEFT)</strong> — methods that adapt massive models using tiny tweaks. LoRA and QLoRA aren't the only ones (there are prefix tuning, adapters, bitfit), but they're the most practical.</p><p>And they work. Teams fine-tune production models with LoRA every single day. It's not a research curiosity anymore — it's a standard tool.</p><p><h2>Key Takeaways</h2></p><p>- <strong>Full fine-tuning is expensive.</strong> Updating 7 billion parameters requires 100+ GB GPU RAM.</p>
 <p>- <strong>LoRA trains 0.4% of parameters.</strong> It approximates weight updates using two small matrices instead of updating the whole model.</p>
 <p>- <strong>QLoRA adds 4-bit quantization.</strong> This lets you fine-tune 70B models on a single A100, or 7B models on free Colab.</p>
 <p>- <strong>The libraries do the heavy lifting.</strong> You don't need to implement LoRA — Hugging Face PEFT handles it.</p>
-<p>- <strong>Start small, experiment, iterate.</strong> Find the right rank, dataset size, and hyperparameters for your problem.</p><p>The GPU poverty problem isn't solved completely — but it's been heavily negotiated down. And that changes everything.</p><p>---</p><p><h2>References</h2></p><p>If you want to dig deeper, these resources are essential:</p><p>- [Fine-Tuning Infrastructure: LoRA, QLoRA, and PEFT at Scale](https://introl.com/blog/fine-tuning-infrastructure-lora-qlora-peft-scale-guide-2025)</p>
-<p>- [LoRA vs QLoRA: Best AI Model Fine-Tuning Platforms & Tools 2026](https://www.index.dev/blog/top-ai-fine-tuning-tools-lora-vs-qlora-vs-full)</p>
-<p>- [LoRA vs. QLoRA: Efficient fine-tuning techniques for LLMs](https://modal.com/blog/lora-qlora)</p>
-<p>- [What is LoRA (Low-Rank Adaption)? - IBM](https://www.ibm.com/think/topics/lora)</p>
-<p>- [LoRA (Low-Rank Adaptation) - Hugging Face LLM Course](https://huggingface.co/learn/llm-course/en/chapter11/4)</p>
-<p>- [LoRA: Low-Rank Adaptation of Large Language Models](https://arxiv.org/abs/2106.09685) (original paper)</p>
-<p>- [QLoRA: Efficient Finetuning of Quantized LLMs](https://arxiv.org/abs/2305.14314) (original paper)</p>
-<p>- [QLoRA GitHub Repository](https://github.com/artidoro/qlora)</p>
-<p>- [Making LLMs even more accessible with bitsandbytes, 4-bit quantization and QLoRA](https://huggingface.co/blog/4bit-transformers-bitsandbytes)</p>
-<p>- [Fine Tuning LLAMAv2 with QLoRA on Google Colab for Free](https://www.kdnuggets.com/fine-tuning-llamav2-with-qlora-on-google-colab-for-free)</p>
-<p>- [Parameter-Efficient Fine-Tuning using PEFT](https://huggingface.co/blog/peft)</p>
-<p>- [Hugging Face PEFT GitHub Repository](https://github.com/huggingface/peft)</p><p>---</p><p><strong>Happy fine-tuning.</strong> You've got this.</p>
+<p>- <strong>Start small, experiment, iterate.</strong> Find the right rank, dataset size, and hyperparameters for your problem.</p><p>The GPU poverty problem isn't solved completely — but it's been heavily negotiated down. And that changes everything.</p><p>---</p><p><h2>References</h2></p><p>If you want to dig deeper, these resources are essential:</p><p>- <a href="https://introl.com/blog/fine-tuning-infrastructure-lora-qlora-peft-scale-guide-2025" target="_blank" rel="noopener">Fine-Tuning Infrastructure: LoRA, QLoRA, and PEFT at Scale</a></p>
+<p>- <a href="https://www.index.dev/blog/top-ai-fine-tuning-tools-lora-vs-qlora-vs-full" target="_blank" rel="noopener">LoRA vs QLoRA: Best AI Model Fine-Tuning Platforms & Tools 2026</a></p>
+<p>- <a href="https://modal.com/blog/lora-qlora" target="_blank" rel="noopener">LoRA vs. QLoRA: Efficient fine-tuning techniques for LLMs</a></p>
+<p>- <a href="https://www.ibm.com/think/topics/lora" target="_blank" rel="noopener">What is LoRA (Low-Rank Adaption)? - IBM</a></p>
+<p>- <a href="https://huggingface.co/learn/llm-course/en/chapter11/4" target="_blank" rel="noopener">LoRA (Low-Rank Adaptation) - Hugging Face LLM Course</a></p>
+<p>- <a href="https://arxiv.org/abs/2106.09685" target="_blank" rel="noopener">LoRA: Low-Rank Adaptation of Large Language Models</a> (original paper)</p>
+<p>- <a href="https://arxiv.org/abs/2305.14314" target="_blank" rel="noopener">QLoRA: Efficient Finetuning of Quantized LLMs</a> (original paper)</p>
+<p>- <a href="https://github.com/artidoro/qlora" target="_blank" rel="noopener">QLoRA GitHub Repository</a></p>
+<p>- <a href="https://huggingface.co/blog/4bit-transformers-bitsandbytes" target="_blank" rel="noopener">Making LLMs even more accessible with bitsandbytes, 4-bit quantization and QLoRA</a></p>
+<p>- <a href="https://www.kdnuggets.com/fine-tuning-llamav2-with-qlora-on-google-colab-for-free" target="_blank" rel="noopener">Fine Tuning LLAMAv2 with QLoRA on Google Colab for Free</a></p>
+<p>- <a href="https://huggingface.co/blog/peft" target="_blank" rel="noopener">Parameter-Efficient Fine-Tuning using PEFT</a></p>
+<p>- <a href="https://github.com/huggingface/peft" target="_blank" rel="noopener">Hugging Face PEFT GitHub Repository</a></p><p>---</p><p><strong>Happy fine-tuning.</strong> You've got this.</p>
     </div>
-  </article>
+    <footer class="footer">
+      <p>&copy; 2026 thousandmiles-ai-admin. All rights reserved.</p>
+    </footer>
+  </div>
 </body>
 </html>

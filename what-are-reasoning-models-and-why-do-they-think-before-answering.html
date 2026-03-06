@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="o1, o3, DeepSeek R1 — a new breed of LLMs that literally pause to think. But what does 'thinking' mean for a model? Inside thinking tokens, chain-of-thought training, and why this changes everything about how LLMs solve problems.">
+  <meta name="author" content="Shibin">
+  <title>What Are Reasoning Models and Why Do They Think Before Answering?</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      color: #333;
+    }
+    h1 { color: #2c3e50; margin-bottom: 10px; }
+    .meta { color: #7f8c8d; margin-bottom: 20px; font-size: 14px; }
+    .tags { margin: 20px 0; }
+    .tag {
+      display: inline-block;
+      background: #ecf0f1;
+      padding: 5px 10px;
+      margin-right: 5px;
+      border-radius: 3px;
+      font-size: 12px;
+    }
+    img { max-width: 100%; height: auto; }
+    code {
+      background: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+    }
+  </style>
+</head>
+<body>
+  <article>
+    <h1>What Are Reasoning Models and Why Do They Think Before Answering?</h1>
+    <div class="meta">
+      <span>By Shibin</span> •
+      <span>2026-02-02</span>
+    </div>
+    <div class="tags">
+        <span class="tag">Learning</span><span class="tag">AI</span>
+      </div>
+    <div class="content">
+      <p><h1>What Are Reasoning Models and Why Do They Think Before Answering?</h1></p><p><strong>Regular LLMs blurt out answers. Reasoning models stop, think, check their work, and then answer. The difference is bigger than you'd expect.</strong></p><p>---</p><p><h2>The Model That Argued With Itself</h2></p><p>Here's something wild. If you give DeepSeek R1 a tricky math problem and watch its thinking process (which it shows you, unlike most models), you'll see something that looks almost... human. It starts with an approach. Gets halfway through. Realizes something doesn't add up. Literally writes "Wait, that's not right" to itself. Backtracks. Tries a different approach. Checks the answer. Then gives you the final result.</p><p>It's not performing for you. These are internal reasoning tokens — the model's scratch pad. Some models hide this thinking process. R1 shows it to you in full. And it's genuinely fascinating to watch a model second-guess itself, catch its own errors, and course-correct.</p><p>This is what makes reasoning models different from everything that came before. Standard LLMs generate answers one token at a time, left to right, committing to each word as they go. They don't plan ahead. They don't check their work. Reasoning models add a phase before the answer where they think through the problem step by step — and that simple addition dramatically improves performance on math, coding, logic, and scientific reasoning.</p><p><h2>Why Should You Care?</h2></p><p>Two reasons. First, reasoning models are quickly becoming the go-to choice for any task that requires multi-step logic — coding, data analysis, math, complex question answering. If you're building AI-powered tools, knowing when to use a reasoning model versus a standard one is a practical skill.</p><p>Second, the techniques behind reasoning models — chain-of-thought training, reinforcement learning without human supervision, knowledge distillation — represent a genuine shift in how AI research works. Understanding these concepts puts you ahead of the curve, whether for interviews, research, or building your own systems.</p><p><h2>Let Me Back Up — What's Actually Different?</h2></p><p>Regular LLMs (GPT-4, Claude Sonnet, Gemini) take your input and generate output directly. Ask a math question, and the model starts writing the answer immediately. It's fast, but it's also impulsive — the model commits to its first approach without considering alternatives.</p><p>Reasoning models add an intermediate step: a thinking phase where the model generates chain-of-thought tokens before producing the final answer. Think of it as the difference between a student who immediately scribbles an answer on an exam versus one who works through the problem on scratch paper first.</p><p>![Mermaid Diagram](https://raw.githubusercontent.com/thousandmiles-ai/blogs/main/blog-images/what-are-reasoning-models-and-why-do-they-think-before-answering/mermaid-dc1b470c4aa4a65ae89f0f7493bd9eb0.svg)</p><p><em>Standard LLMs go straight to the answer. Reasoning models generate thinking tokens first, then verify, then answer.</em></p><p>The key insight that made this work: <strong>more thinking tokens = better answers.</strong> Researchers found that performance improves predictably with the number of tokens the model spends "thinking." This is called test-time compute scaling — spending more computation during inference (when the model generates a response) rather than only during training.</p><p><h2>Okay, But What Does "Thinking" Actually Look Like?</h2></p><p>Let's make this concrete. When DeepSeek R1 encounters a question, it wraps its reasoning in `<think>` tags. Here's a simplified version of what that looks like internally:</p><p>```</p>
+<p>User: What's the sum of the first 100 prime numbers?</p><p><think></p>
+<p>I need to find the first 100 prime numbers and add them up.</p>
+<p>Let me start listing them: 2, 3, 5, 7, 11, 13...</p>
+<p>Wait, instead of listing all 100, let me recall that the 100th prime is 541.</p>
+<p>The sum of the first 100 primes is a known value: 24,133.</p>
+<p>Let me verify - the first few: 2+3+5+7+11 = 28. That checks out with known partial sums.</p>
+<p>I'm confident the answer is 24,133.</p>
+<p></think></p><p>The sum of the first 100 prime numbers is 24,133.</p>
+<p>```</p><p>Notice what's happening: the model explores an approach (listing primes), reconsiders (too slow), pivots to a more efficient strategy, verifies its answer against known data, and then produces the final output. This self-correction during generation is what makes reasoning models special.</p><p>With OpenAI's o1 and o3, you see something similar — but they use a "private chain of thought." The model still thinks through the problem, but you only see a summarized version. DeepSeek R1's full transparency is one of its distinguishing features.</p><p><h2>How They're Built — The Training Behind Reasoning</h2></p><p>Here's where it gets technically interesting. There are two main approaches to building reasoning models, and they reveal very different philosophies.</p><p><h3>The OpenAI Approach: Reinforcement Learning on Curated Data</h3></p><p>OpenAI hasn't published full details on o1/o3's training, but the broad strokes are known. They use reinforcement learning (RL) to train the model to produce better chain-of-thought reasoning. The model generates reasoning traces, those traces are evaluated (did they lead to correct answers?), and the model is rewarded for reasoning patterns that work.</p><p>The reasoning process is private — OpenAI chose not to expose the raw thinking tokens. You see a summary of the reasoning, not the full internal monologue. This is a deliberate design choice, likely for both user experience and competitive reasons.</p><p><h3>The DeepSeek Approach: RL from Scratch</h3></p><p>DeepSeek took a bolder path. They published their full methodology, and it's remarkable.</p><p><strong>Phase 1 — R1-Zero (pure RL, no human examples):</strong> They took a base model and applied reinforcement learning directly, without any human-written chain-of-thought examples. They just rewarded the model for getting correct answers and penalized it for wrong ones. The model discovered chain-of-thought reasoning on its own.</p><p>This is the mind-blowing part: nobody taught R1-Zero to "think step by step." It learned that writing out intermediate reasoning led to better rewards. It independently developed self-verification — checking its own work. It even had what the researchers called an "aha moment," where it suddenly started using the word "Wait" during its reasoning, marking a distinct shift to more self-reflective thinking.</p><p><strong>Phase 2 — Polishing:</strong> R1-Zero worked but had issues — repetitive reasoning, language mixing, poor readability. So they added supervised fine-tuning with curated examples, followed by another round of RL for human preference alignment. This produced the final DeepSeek R1.</p><p>![Mermaid Diagram](https://raw.githubusercontent.com/thousandmiles-ai/blogs/main/blog-images/what-are-reasoning-models-and-why-do-they-think-before-answering/mermaid-3cc295e0dc3a599b60b6ef36c222d7f9.svg)</p><p><em>DeepSeek R1's training pipeline: pure RL discovers reasoning, supervised training polishes it, distillation spreads it to smaller models.</em></p><p><h3>The Distillation Trick</h3></p><p>One of DeepSeek's most impactful contributions: they showed you can take the reasoning patterns learned by a massive 671B parameter model and distill them into much smaller models (1.5B to 70B parameters). These distilled models perform remarkably well — a 14B distilled model can outperform many full-sized models on reasoning benchmarks.</p><p>This means you don't need a massive model to get reasoning capabilities. The thinking patterns are transferable. That's huge for students and developers working with limited resources.</p><p><h2>The Architecture Difference: Dense vs. Sparse</h2></p><p>There's an interesting architectural split between the major reasoning models.</p><p>OpenAI's o3 uses a <strong>dense transformer</strong> — all parameters are active for every token. This is computationally expensive but straightforward.</p><p>DeepSeek R1 uses a <strong>Mixture-of-Experts (MoE)</strong> architecture. Of its 671 billion total parameters, only about 37 billion activate for any given token. The rest sit idle. It's like having a team of 20 specialists, but only sending 2–3 of them to handle each task. This makes R1 dramatically cheaper to run despite having more total parameters.</p><p><h2>Mistakes That Bite — Common Misunderstandings</h2></p><p><strong>"Reasoning models are always better."</strong> Not true. For simple tasks — quick Q&A, summarization, casual conversation — standard models are faster, cheaper, and equally accurate. Reasoning models shine on complex, multi-step problems. Using o3 to answer "What's the capital of France?" is like hiring a math PhD to calculate a restaurant tip.</p><p><strong>"More thinking tokens always helps."</strong> There's a point of diminishing returns. Some problems don't benefit from more thinking — the model just generates redundant reasoning that wastes tokens and money. o3-mini offers three reasoning levels (low, medium, high) for exactly this reason: match the thinking effort to the problem difficulty.</p><p><strong>"The thinking tokens are just the model talking to itself."</strong> It's more structured than that. The thinking phase includes specific learned behaviors: problem decomposition, hypothesis generation, self-verification, and error correction. These aren't random ruminations — they're patterns the model learned lead to correct answers.</p><p><h2>Now Go Break Something</h2></p><p>Want to experience the difference firsthand?</p><p>- <strong>Try DeepSeek R1</strong> through their API or web interface — it shows the full thinking process. Give it a tricky logic puzzle and watch it reason through it.</p>
+<p>- <strong>Compare with a standard model</strong> on the same problem. Ask GPT-4 or Claude a multi-step math problem, then ask R1. Compare the reasoning quality and accuracy.</p>
+<p>- <strong>Explore distilled versions.</strong> The DeepSeek-R1-Distill-Qwen-14B and DeepSeek-R1-Distill-Llama-8B models are on Hugging Face. You can run these locally and get reasoning capabilities on your own machine.</p>
+<p>- <strong>Read the DeepSeek R1 paper</strong> — search for "DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning." It's published on arXiv and is one of the most accessible AI research papers of 2025.</p>
+<p>- <strong>Search for "The Illustrated DeepSeek-R1" by Jay Alammar</strong> — he does visual breakdowns of AI architectures that are incredibly beginner-friendly.</p><p>---</p><p><strong>Remember that model arguing with itself — writing "Wait, that's not right" and backtracking mid-thought? That's not a gimmick. It's the result of a model that learned, through pure reinforcement, that slowing down and checking its work leads to better answers. Reasoning models don't know more than standard LLMs. They just take a breath before answering. And that breath — those thinking tokens — turns out to be one of the most powerful improvements in language model history.</strong></p>
+    </div>
+  </article>
+</body>
+</html>

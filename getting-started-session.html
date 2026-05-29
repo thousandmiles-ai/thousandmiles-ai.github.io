@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="All the links and resources you need for the Getting Started with LLMs and Agentic AI session by Thousandmiles.">
+  <meta name="author" content="Shibin">
+  <meta property="og:title" content="Getting Started with LLMs and Agentic AI — Session Resources">
+  <meta property="og:description" content="All the links and resources you need for the Getting Started with LLMs and Agentic AI session by Thousandmiles.">
+  <meta property="og:type" content="article">
+  <title>Getting Started with LLMs and Agentic AI — Session Resources</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f8f9fa;
+      --bg-code: #f6f8fa;
+      --text-primary: #1a202c;
+      --text-secondary: #4a5568;
+      --text-tertiary: #718096;
+      --border-color: #e2e8f0;
+      --accent-color: #3b82f6;
+      --accent-hover: #2563eb;
+      --tag-bg: #e0e7ff;
+      --tag-text: #3730a3;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+      --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-primary: #1a202c;
+        --bg-secondary: #2d3748;
+        --bg-code: #2d3748;
+        --text-primary: #f7fafc;
+        --text-secondary: #e2e8f0;
+        --text-tertiary: #a0aec0;
+        --border-color: #4a5568;
+        --accent-color: #60a5fa;
+        --accent-hover: #3b82f6;
+        --tag-bg: #3730a3;
+        --tag-text: #e0e7ff;
+      }
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.7;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+
+    .header {
+      margin-bottom: 3rem;
+    }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      color: var(--accent-color);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 2rem;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: var(--accent-hover);
+    }
+
+    .back-link::before {
+      content: "\2190";
+      margin-right: 0.5rem;
+    }
+
+    article h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      line-height: 1.2;
+      color: var(--text-primary);
+      margin-bottom: 1rem;
+    }
+
+    @media (max-width: 640px) {
+      article h1 {
+        font-size: 2rem;
+      }
+    }
+
+    .meta {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--text-tertiary);
+      font-size: 0.875rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .meta-divider {
+      color: var(--border-color);
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .tag {
+      display: inline-block;
+      background: var(--tag-bg);
+      color: var(--tag-text);
+      padding: 0.375rem 0.875rem;
+      border-radius: 0.375rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      transition: transform 0.2s;
+    }
+
+    .tag:hover {
+      transform: translateY(-1px);
+    }
+
+    .content {
+      font-size: 1.0625rem;
+      color: var(--text-secondary);
+    }
+
+    .content h2 {
+      font-size: 1.875rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 2.5rem 0 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    .content h3 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 2rem 0 1rem;
+    }
+
+    .content h4 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 1.5rem 0 0.75rem;
+    }
+
+    .content p {
+      margin: 1rem 0;
+      line-height: 1.8;
+    }
+
+    .content strong {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .content a {
+      color: var(--accent-color);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.2s;
+    }
+
+    .content a:hover {
+      border-bottom-color: var(--accent-color);
+    }
+
+    .content code {
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      font-size: 0.875em;
+      background: var(--bg-code);
+      padding: 0.2em 0.4em;
+      border-radius: 0.25rem;
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    .content pre {
+      background: var(--bg-code);
+      padding: 1.25rem;
+      border-radius: 0.5rem;
+      overflow-x: auto;
+      margin: 1.5rem 0;
+      border: 1px solid var(--border-color);
+    }
+
+    .content pre code {
+      background: none;
+      padding: 0;
+      border: none;
+      font-size: 0.875rem;
+      line-height: 1.6;
+    }
+
+    .content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 0.5rem;
+      margin: 2rem 0;
+      box-shadow: var(--shadow-md);
+    }
+
+    .content ul, .content ol {
+      margin: 1rem 0 1rem 1.5rem;
+    }
+
+    .content li {
+      margin: 0.5rem 0;
+    }
+
+    .content blockquote {
+      border-left: 4px solid var(--accent-color);
+      padding-left: 1rem;
+      margin: 1.5rem 0;
+      color: var(--text-tertiary);
+      font-style: italic;
+    }
+
+    .resource-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 0.75rem;
+      padding: 1.25rem 1.5rem;
+      margin: 0.75rem 0;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .resource-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .resource-card a {
+      font-weight: 600;
+      font-size: 1.0625rem;
+    }
+
+    .resource-card p {
+      margin: 0.25rem 0 0;
+      font-size: 0.9375rem;
+      color: var(--text-tertiary);
+    }
+
+    .footer {
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border-color);
+      text-align: center;
+      color: var(--text-tertiary);
+      font-size: 0.875rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="index.html" class="back-link">All Posts</a>
+    <div class="header">
+      <article>
+        <h1>Getting Started with LLMs and Agentic AI</h1>
+        <div class="meta">
+          <span>Shibin</span>
+          <span class="meta-divider">&bull;</span>
+          <time datetime="2026-05-29">May 29, 2026</time>
+        </div>
+        <div class="tags">
+          <span class="tag">Learning</span><span class="tag">AI</span><span class="tag">LLMs</span>
+        </div>
+      </article>
+    </div>
+    <div class="content">
+      <p>Welcome to the session! This page has all the links you need to follow along. Click any resource to open it in a new tab while you listen.</p>
+
+      <h2>Tokenizers</h2>
+      <p>Tokenizers break text into the chunks that LLMs actually process. Try pasting the same sentence into both tools below and compare how they split it up.</p>
+      <div class="resource-card">
+        <a href="https://platform.openai.com/tokenizer" target="_blank" rel="noopener">OpenAI Tokenizer</a>
+        <p>Official OpenAI tool to visualize how text gets split into tokens.</p>
+      </div>
+      <div class="resource-card">
+        <a href="https://tiktokenizer.vercel.app/" target="_blank" rel="noopener">Tiktokenizer</a>
+        <p>Interactive tokenizer explorer with support for multiple models.</p>
+      </div>
+
+      <h2>System Prompts</h2>
+      <p>System prompts are the hidden instructions that shape how an LLM behaves. See what a real production system prompt looks like.</p>
+      <div class="resource-card">
+        <a href="https://platform.claude.com/docs/en/release-notes/system-prompts" target="_blank" rel="noopener">Claude System Prompts</a>
+        <p>Anthropic's published system prompts for Claude, showing how production AI systems are configured.</p>
+      </div>
+
+      <h2>Hands-on</h2>
+      <p>Time to get your hands dirty. Use the simulation website to experiment, and grab a Groq API key to try calling LLMs programmatically.</p>
+      <div class="resource-card">
+        <a href="https://simulations-zeta.vercel.app/home" target="_blank" rel="noopener">Thousandmiles Simulation Website</a>
+        <p>Interactive simulations to help you understand LLM concepts visually.</p>
+      </div>
+      <div class="resource-card">
+        <a href="https://console.groq.com/home" target="_blank" rel="noopener">Groq Console (Get API Key)</a>
+        <p>Sign up and grab a free API key to call LLMs at lightning speed.</p>
+      </div>
+
+      <h2>Running Local Models</h2>
+      <p>You don't need cloud APIs to run LLMs. These tools let you download and run models directly on your laptop.</p>
+      <div class="resource-card">
+        <a href="https://ollama.com/" target="_blank" rel="noopener">Ollama</a>
+        <p>Run open-source LLMs locally from the command line. One command to download and start chatting.</p>
+      </div>
+      <div class="resource-card">
+        <a href="https://lmstudio.ai/" target="_blank" rel="noopener">LM Studio</a>
+        <p>Desktop app to discover, download, and run local LLMs with a clean UI.</p>
+      </div>
+
+      <h2>Agentic AI Demos</h2>
+      <p>See AI agents in action. Agents go beyond simple chat by using tools, making decisions, and executing multi-step tasks.</p>
+      <div class="resource-card">
+        <a href="https://github.com/thousandmiles-ai/agentic-classroom" target="_blank" rel="noopener">Agentic Classroom (GitHub)</a>
+        <p>Hands-on demos and examples of agentic AI patterns you can run yourself.</p>
+      </div>
+
+      <h2>Further Experiments</h2>
+      <p>Keep exploring after the session. Try using AI agents for real coding tasks.</p>
+      <div class="resource-card">
+        <a href="https://opencode.ai/" target="_blank" rel="noopener">OpenCode — CLI Coding Agent</a>
+        <p>An open-source CLI coding agent. Write code by talking to your terminal.</p>
+      </div>
+
+      <h2>Thousandmiles Mentorship Program</h2>
+      <p>Want structured mentorship to go deeper into AI and software engineering? Check out the Thousandmiles program.</p>
+      <div class="resource-card">
+        <a href="https://www.thousandmiles.ai/" target="_blank" rel="noopener">Thousandmiles Website</a>
+        <p>Learn more about the mentorship program and what we offer.</p>
+      </div>
+      <div class="resource-card">
+        <a href="https://www.thousandmiles.ai/faq" target="_blank" rel="noopener">FAQ</a>
+        <p>Common questions about the program, schedule, and what to expect.</p>
+      </div>
+      <div class="resource-card">
+        <a href="https://www.thousandmiles.ai/pricing" target="_blank" rel="noopener">Pricing</a>
+        <p>Plans and pricing for the mentorship program.</p>
+      </div>
+    </div>
+    <footer class="footer">
+      <p>&copy; 2026 Shibin. All rights reserved.</p>
+    </footer>
+  </div>
+</body>
+</html>
